@@ -1,0 +1,316 @@
+<section
+  class="ascii-scroll"
+  id="serpent-signal"
+  data-ascii-scroll
+  data-reveal
+>
+  <div class="ascii-scroll__sticky">
+    <div class="ascii-scroll__bar">
+      <div>
+        <p class="kicker">Serpent Signal</p>
+        <h2>Scroll Study</h2>
+      </div>
+      <label class="ascii-upload">
+        <input data-ascii-file data-ascii-input type="file" accept="video/*" />
+        <span data-ascii-file-label>Upload video</span>
+      </label>
+    </div>
+
+    <div class="ascii-scroll__viewport">
+      <pre
+        class="ascii-scroll__output"
+        data-ascii-output
+        aria-live="polite"
+      >Upload a snake video.</pre>
+    </div>
+
+    <div class="ascii-scroll__status" data-ascii-readout>Scroll controls frame position.</div>
+  </div>
+
+  <video data-ascii-video muted playsinline preload="metadata"></video>
+  <canvas data-ascii-canvas></canvas>
+</section>
+
+<script>
+  const asciiSections =
+    document.querySelectorAll<HTMLElement>("[data-ascii-scroll]");
+  const glyphRamp =
+    ".,:-=+*#%@";
+  const luminanceFloor = 0.1;
+  const foregroundBoost = 1.18;
+
+  const clamp = (value: number, min: number, max: number) =>
+    Math.min(Math.max(value, min), max);
+
+  asciiSections.forEach((section) => {
+    const input = section.querySelector<HTMLInputElement>("[data-ascii-file]");
+    const label = section.querySelector<HTMLElement>("[data-ascii-file-label]");
+    const video = section.querySelector<HTMLVideoElement>("[data-ascii-video]");
+    const canvas = section.querySelector<HTMLCanvasElement>("[data-ascii-canvas]");
+    const output = section.querySelector<HTMLElement>("[data-ascii-output]");
+    const readout = section.querySelector<HTMLElement>("[data-ascii-readout]");
+    const viewport = section.querySelector<HTMLElement>(".ascii-scroll__viewport");
+    const context = canvas?.getContext("2d");
+
+    if (!input || !label || !video || !canvas || !output || !readout || !viewport || !context) {
+      return;
+    }
+
+    let objectUrl: string | undefined;
+    let duration = 0;
+    let pendingTime = 0;
+    let isSeeking = false;
+    let scrollQueued = false;
+
+    const setOutput = (text: string) => {
+      output.textContent = text;
+    };
+
+    const updateReadout = (progress: number, time: number) => {
+      if (!duration) {
+        readout.textContent = "Scroll controls frame position.";
+        return;
+      }
+
+      readout.textContent = `${Math.round(progress * 100)
+        .toString()
+        .padStart(2, "0")}% / ${time.toFixed(2)}s`;
+    };
+
+    const getScrollProgress = () => {
+      const start = section.offsetTop;
+      const end = section.offsetTop + section.offsetHeight - window.innerHeight;
+
+      if (end <= start) return 0;
+      return clamp((window.scrollY - start) / (end - start), 0, 1);
+    };
+
+    const resizeCanvas = () => {
+      const viewportWidth = viewport.clientWidth || window.innerWidth;
+      const aspect = video.videoWidth
+        ? video.videoHeight / video.videoWidth
+        : 9 / 16;
+      const columns = Math.round(clamp(viewportWidth / 8.5, 44, 118));
+      const rows = Math.round(columns * aspect * 0.48);
+
+      canvas.width = columns;
+      canvas.height = Math.max(rows, 18);
+    };
+
+    const getSnakeSignal = (
+      red: number,
+      green: number,
+      blue: number,
+      luminance: number,
+    ) => {
+      const maxChannel = Math.max(red, green, blue);
+      const minChannel = Math.min(red, green, blue);
+      const saturation = maxChannel === 0 ? 0 : (maxChannel - minChannel) / maxChannel;
+      const warmth = (red - blue) / 255;
+      const goldBalance = (red + green * 0.68 - blue * 1.45) / 255;
+      const isWarmScale = warmth > 0.055 && goldBalance > 0.075;
+      const isBrightBelly = luminance > 0.32 && warmth > 0.02 && red >= green * 0.82;
+      const isShadowedScale =
+        saturation > 0.12 && warmth > 0 && red > blue + 5 && green >= blue;
+
+      if (
+        luminance < luminanceFloor ||
+        (!isWarmScale && !isBrightBelly && !isShadowedScale)
+      ) {
+        return 0;
+      }
+
+      return clamp(
+        goldBalance * 0.95 + saturation * 0.52 + (luminance - luminanceFloor) * 0.7,
+        0,
+        1,
+      );
+    };
+
+    const renderFrame = () => {
+      if (!video.videoWidth || !canvas.width || !canvas.height) return;
+
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const width = canvas.width;
+      const height = canvas.height;
+      const { data } = context.getImageData(0, 0, width, height);
+      const luminanceMap = new Float32Array(width * height);
+      const signalMap = new Float32Array(width * height);
+      const lines: string[] = [];
+
+      for (let index = 0; index < signalMap.length; index += 1) {
+        const dataIndex = index * 4;
+        const red = data[dataIndex];
+        const green = data[dataIndex + 1];
+        const blue = data[dataIndex + 2];
+        const luminance = (0.2126 * red + 0.7152 * green + 0.0722 * blue) / 255;
+
+        luminanceMap[index] = luminance;
+        signalMap[index] = getSnakeSignal(red, green, blue, luminance);
+      }
+
+      const getLocalContrast = (x: number, y: number, luminance: number) => {
+        let contrast = 0;
+
+        for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+          for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+            if (!offsetX && !offsetY) continue;
+
+            const neighborX = x + offsetX;
+            const neighborY = y + offsetY;
+
+            if (neighborX < 0 || neighborX >= width || neighborY < 0 || neighborY >= height) {
+              continue;
+            }
+
+            const neighborIndex = neighborY * width + neighborX;
+
+            contrast = Math.max(contrast, Math.abs(luminance - luminanceMap[neighborIndex]));
+          }
+        }
+
+        return contrast;
+      };
+
+      const getNeighborSignal = (x: number, y: number) => {
+        let signal = 0;
+
+        for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+          for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+            const neighborX = x + offsetX;
+            const neighborY = y + offsetY;
+
+            if (neighborX < 0 || neighborX >= width || neighborY < 0 || neighborY >= height) {
+              continue;
+            }
+
+            signal = Math.max(signal, signalMap[neighborY * width + neighborX]);
+          }
+        }
+
+        return signal;
+      };
+
+      for (let y = 0; y < height; y += 1) {
+        let line = "";
+
+        for (let x = 0; x < width; x += 1) {
+          const index = y * width + x;
+          const luminance = luminanceMap[index];
+          const localContrast = getLocalContrast(x, y, luminance);
+          const neighborSignal = getNeighborSignal(x, y);
+          const snakeSignal =
+            signalMap[index] ||
+            (neighborSignal > 0.18 && localContrast > 0.035 && luminance > luminanceFloor
+              ? clamp(neighborSignal * 0.32 + localContrast * 2.2, 0.08, 0.62)
+              : 0);
+
+          if (!snakeSignal) {
+            line += " ";
+            continue;
+          }
+
+          const shaped = clamp(
+            (((luminance - luminanceFloor) / (1 - luminanceFloor)) * 0.58 +
+              snakeSignal * 0.34 +
+              localContrast * 1.2) *
+              foregroundBoost,
+            0,
+            1,
+          );
+          const glyphIndex = Math.round(shaped * (glyphRamp.length - 1));
+
+          line += glyphRamp[glyphIndex];
+        }
+
+        lines.push(line);
+      }
+
+      setOutput(lines.join("\n"));
+    };
+
+    const seekTo = (time: number) => {
+      if (!duration || Number.isNaN(time)) return;
+
+      pendingTime = clamp(time, 0, Math.max(duration - 0.04, 0));
+
+      if (isSeeking) return;
+
+      isSeeking = true;
+      video.currentTime = pendingTime;
+    };
+
+    const syncToScroll = () => {
+      scrollQueued = false;
+
+      if (!duration) return;
+
+      const progress = getScrollProgress();
+      const time = progress * Math.max(duration - 0.04, 0);
+
+      updateReadout(progress, time);
+
+      if (Math.abs(video.currentTime - time) > 0.035) {
+        seekTo(time);
+      } else {
+        renderFrame();
+      }
+    };
+
+    const queueScrollSync = () => {
+      if (scrollQueued) return;
+
+      scrollQueued = true;
+      window.requestAnimationFrame(syncToScroll);
+    };
+
+    input.addEventListener("change", () => {
+      const [file] = input.files || [];
+
+      if (!file) return;
+
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+
+      objectUrl = URL.createObjectURL(file);
+      label.textContent = file.name;
+      setOutput("Loading video signal...");
+      readout.textContent = "Preparing frames.";
+
+      video.src = objectUrl;
+      video.load();
+    });
+
+    video.addEventListener("loadedmetadata", () => {
+      duration = video.duration || 0;
+      resizeCanvas();
+
+      const scrollVh = clamp(duration * 64 + 180, 280, 640);
+      section.style.setProperty("--ascii-scroll-height", `${scrollVh}svh`);
+
+      seekTo(0);
+      queueScrollSync();
+    });
+
+    video.addEventListener("loadeddata", () => {
+      resizeCanvas();
+      renderFrame();
+      queueScrollSync();
+    });
+
+    video.addEventListener("seeked", () => {
+      isSeeking = false;
+      renderFrame();
+
+      if (Math.abs(video.currentTime - pendingTime) > 0.035) {
+        seekTo(pendingTime);
+      }
+    });
+
+    window.addEventListener("scroll", queueScrollSync, { passive: true });
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+      queueScrollSync();
+    });
+  });
+</script>

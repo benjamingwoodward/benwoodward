@@ -1,0 +1,361 @@
+---
+import FuzzyText from "./FuzzyText.jsx";
+---
+
+<section class="footer-cobra" data-footer-ascii>
+  <div class="footer-cobra__sticky">
+    <div class="footer-cobra__frame">
+      <pre
+        class="footer-cobra__output"
+        data-footer-ascii-output
+        aria-label="ASCII cobra slithering into frame"
+      ></pre>
+    </div>
+
+    <div class="footer-cobra__copy">
+      <p
+        class="footer-cobra__statement"
+        aria-label="Reach out if you're building something ambitious."
+      >
+        Reach out if you're building something <span
+          class="footer-cobra__fuzzy-word"
+          aria-hidden="true"
+        ><FuzzyText
+          client:load
+          baseIntensity={0.18}
+          hoverIntensity={0.32}
+          enableHover={false}
+          fuzzRange={12}
+          fps={28}
+          direction="horizontal"
+          textPaddingStart={0}
+          textPaddingEnd={18}
+          glitchMode={true}
+          glitchInterval={1700}
+          glitchDuration={140}
+          fontSize="1em"
+          fontWeight={400}
+          fontStyle="italic"
+          color="#fff"
+          className="fuzzy-text fuzzy-text--ambitious"
+          text="ambitious"
+        /></span>.
+      </p>
+    </div>
+  </div>
+
+  <video
+    data-footer-ascii-video
+    src="/footer-cobra.mp4"
+    muted
+    playsinline
+    preload="auto"
+  ></video>
+  <canvas data-footer-ascii-canvas></canvas>
+</section>
+
+<script>
+  const footerAsciiSections =
+    document.querySelectorAll<HTMLElement>("[data-footer-ascii]");
+  const footerGlyphRamp = ".:-=+*#%@";
+
+  const clamp = (value: number, min: number, max: number) =>
+    Math.min(Math.max(value, min), max);
+
+  footerAsciiSections.forEach((section) => {
+    const video = section.querySelector<HTMLVideoElement>("[data-footer-ascii-video]");
+    const canvas = section.querySelector<HTMLCanvasElement>("[data-footer-ascii-canvas]");
+    const output = section.querySelector<HTMLElement>("[data-footer-ascii-output]");
+    const frame = section.querySelector<HTMLElement>(".footer-cobra__frame");
+    const context = canvas?.getContext("2d");
+
+    if (!video || !canvas || !output || !frame || !context) return;
+
+    let duration = 0;
+    let pendingTime = 0;
+    let isSeeking = false;
+    let scrollQueued = false;
+    let idleTextureInterval: number | undefined;
+    let lastMotionAt = performance.now();
+    let texturePhase = 0;
+    let currentLines: string[] = [];
+    let videoSourceRect = { x: 0, y: 0, width: 0, height: 0 };
+
+    const resizeCanvas = () => {
+      const frameWidth = frame.clientWidth || window.innerWidth;
+      const frameHeight = frame.clientHeight || window.innerHeight;
+      const sourceY = video.videoHeight ? Math.round(video.videoHeight * 0.22) : 0;
+      const sourceHeight = video.videoHeight ? video.videoHeight - sourceY : 1;
+      const sourceWidth = video.videoWidth || Math.round(sourceHeight * 1.28);
+      const lineHeightRatio = 0.84;
+      const cellWidthRatio = 0.6;
+      const rows = Math.round(clamp(frameHeight / 6.3, 88, 136));
+      const fontSize = frameHeight / (rows * lineHeightRatio);
+      const fullWidthColumns = Math.ceil(frameWidth / (fontSize * cellWidthRatio)) + 4;
+      const columns = Math.round(clamp(fullWidthColumns, 82, 280));
+
+      canvas.width = columns;
+      canvas.height = rows;
+      videoSourceRect = {
+        x: 0,
+        y: sourceY,
+        width: sourceWidth,
+        height: sourceHeight,
+      };
+      frame.style.setProperty("--footer-ascii-font-size", `${fontSize.toFixed(2)}px`);
+    };
+
+    const getSnakeSignal = (
+      red: number,
+      green: number,
+      blue: number,
+      luminance: number,
+    ) => {
+      const maxChannel = Math.max(red, green, blue);
+      const minChannel = Math.min(red, green, blue);
+      const saturation = maxChannel === 0 ? 0 : (maxChannel - minChannel) / maxChannel;
+      const warmth = (red - blue) / 255;
+      const amberBalance = (red * 1.02 + green * 0.45 - blue * 1.5) / 255;
+      const isWarmBody =
+        saturation > 0.11 &&
+        warmth > 0.055 &&
+        amberBalance > 0.08 &&
+        red >= green * 0.72 &&
+        green >= blue * 0.82;
+      const isScaleHighlight =
+        luminance > 0.34 &&
+        warmth > 0.02 &&
+        red >= green * 0.82 &&
+        green >= blue * 1.02;
+      const isDarkRidge =
+        saturation > 0.18 &&
+        warmth > 0.025 &&
+        red > blue + 10 &&
+        luminance > 0.08;
+
+      if (!isWarmBody && !isScaleHighlight && !isDarkRidge) {
+        return 0;
+      }
+
+      return clamp(
+        amberBalance * 0.74 + saturation * 0.54 + (luminance - 0.08) * 0.42,
+        0,
+        1,
+      );
+    };
+
+    const renderFrame = () => {
+      if (!video.videoWidth || !canvas.width || !canvas.height) return;
+
+      context.drawImage(
+        video,
+        videoSourceRect.x,
+        videoSourceRect.y,
+        videoSourceRect.width,
+        videoSourceRect.height,
+        0,
+        0,
+        canvas.width,
+        canvas.height,
+      );
+
+      const width = canvas.width;
+      const height = canvas.height;
+      const { data } = context.getImageData(0, 0, width, height);
+      const luminanceMap = new Float32Array(width * height);
+      const signalMap = new Float32Array(width * height);
+      const lines: string[] = [];
+
+      for (let cell = 0; cell < signalMap.length; cell += 1) {
+        const index = cell * 4;
+        const red = data[index];
+        const green = data[index + 1];
+        const blue = data[index + 2];
+        const luminance = (0.2126 * red + 0.7152 * green + 0.0722 * blue) / 255;
+
+        luminanceMap[cell] = luminance;
+        signalMap[cell] = getSnakeSignal(red, green, blue, luminance);
+      }
+
+      for (let y = 0; y < height; y += 1) {
+        let line = "";
+
+        for (let x = 0; x < width; x += 1) {
+          const cell = y * width + x;
+          const luminance = luminanceMap[cell];
+          const leftCell = x > 0 ? cell - 1 : cell;
+          const rightCell = x < width - 1 ? cell + 1 : cell;
+          const topCell = y > 0 ? cell - width : cell;
+          const bottomCell = y < height - 1 ? cell + width : cell;
+          const luminanceEdge = Math.max(
+            Math.abs(luminance - luminanceMap[leftCell]),
+            Math.abs(luminance - luminanceMap[rightCell]),
+            Math.abs(luminance - luminanceMap[topCell]),
+            Math.abs(luminance - luminanceMap[bottomCell]),
+          );
+          const neighborSignal = Math.max(
+            signalMap[cell],
+            signalMap[leftCell],
+            signalMap[rightCell],
+            signalMap[topCell],
+            signalMap[bottomCell],
+          );
+          const snakeSignal =
+            signalMap[cell] ||
+            (neighborSignal > 0.16 && luminanceEdge > 0.032 && luminance > 0.08
+              ? clamp(neighborSignal * 0.36 + luminanceEdge * 2.15, 0.08, 0.68)
+              : 0);
+          const isSubject =
+            snakeSignal > 0.12 ||
+            (neighborSignal > 0.24 && luminanceEdge > 0.045);
+
+          if (!isSubject) {
+            line += " ";
+            continue;
+          }
+
+          const glyphStrength = clamp(
+            snakeSignal * 0.78 +
+              neighborSignal * 0.22 +
+              luminanceEdge * 1.45 +
+              luminance * 0.28,
+            0,
+            1,
+          );
+          const glyphIndex = Math.round(glyphStrength * (footerGlyphRamp.length - 1));
+
+          line += footerGlyphRamp[glyphIndex];
+        }
+
+        lines.push(line);
+      }
+
+      currentLines = lines;
+      output.textContent = currentLines.join("\n");
+    };
+
+    const getTextureNoise = (x: number, y: number, phase: number) => {
+      const value = Math.sin((x + 1) * 19.19 + (y + 1) * 41.41 + phase * 13.13) * 43758.5453;
+
+      return value - Math.floor(value);
+    };
+
+    const renderIdleTexture = () => {
+      if (!currentLines.length) return;
+
+      const texturedLines = currentLines.map((line, y) => {
+        let nextLine = "";
+
+        for (let x = 0; x < line.length; x += 1) {
+          const glyph = line[x];
+
+          if (glyph === " " || getTextureNoise(x, y, texturePhase) < 0.988) {
+            nextLine += glyph;
+            continue;
+          }
+
+          const currentIndex = footerGlyphRamp.indexOf(glyph);
+          const direction = getTextureNoise(x, y, texturePhase * 0.53) > 0.5 ? 1 : -1;
+          const nextIndex = clamp(currentIndex + direction, 0, footerGlyphRamp.length - 1);
+
+          nextLine += footerGlyphRamp[nextIndex] || glyph;
+        }
+
+        return nextLine;
+      });
+
+      output.textContent = texturedLines.join("\n");
+    };
+
+    const getScrollProgress = () => {
+      const start = section.offsetTop;
+      const end = section.offsetTop + section.offsetHeight - window.innerHeight;
+
+      if (end <= start) return 0;
+      return clamp((window.scrollY - start) / (end - start), 0, 1);
+    };
+
+    const seekTo = (time: number) => {
+      if (!duration || Number.isNaN(time)) return;
+
+      pendingTime = clamp(time, 0, Math.max(duration - 0.04, 0));
+
+      if (isSeeking) return;
+
+      isSeeking = true;
+      video.currentTime = pendingTime;
+    };
+
+    const syncToScroll = () => {
+      scrollQueued = false;
+
+      if (!duration) return;
+
+      const progress = getScrollProgress();
+      const time = progress * Math.max(duration - 0.04, 0);
+
+      section.style.setProperty("--footer-cobra-progress", progress.toFixed(3));
+
+      if (Math.abs(video.currentTime - time) > 0.035) {
+        seekTo(time);
+      } else {
+        renderFrame();
+      }
+    };
+
+    const queueScrollSync = () => {
+      lastMotionAt = performance.now();
+
+      if (scrollQueued) return;
+
+      scrollQueued = true;
+      window.requestAnimationFrame(syncToScroll);
+    };
+
+    const startIdleTexture = () => {
+      if (idleTextureInterval || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+      }
+
+      idleTextureInterval = window.setInterval(() => {
+        if (document.hidden || isSeeking || !duration) return;
+        if (performance.now() - lastMotionAt < 360) return;
+
+        texturePhase += 1;
+        renderIdleTexture();
+      }, 620);
+    };
+
+    const initialize = () => {
+      duration = video.duration || 0;
+      resizeCanvas();
+      seekTo(0);
+      queueScrollSync();
+    };
+
+    video.addEventListener("loadedmetadata", initialize, { once: true });
+    video.addEventListener("loadeddata", () => {
+      resizeCanvas();
+      renderFrame();
+      queueScrollSync();
+      startIdleTexture();
+    });
+    video.addEventListener("seeked", () => {
+      isSeeking = false;
+
+      if (Math.abs(video.currentTime - pendingTime) > 0.035) {
+        seekTo(pendingTime);
+        return;
+      }
+
+      renderFrame();
+    });
+
+    window.addEventListener("resize", () => {
+      lastMotionAt = performance.now();
+      resizeCanvas();
+      queueScrollSync();
+    });
+    window.addEventListener("scroll", queueScrollSync, { passive: true });
+  });
+</script>

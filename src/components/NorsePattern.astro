@@ -1,0 +1,80 @@
+---
+const { side = "left" } = Astro.props;
+
+const scalePath =
+  "M32 -9 C36 9 49 20 64 27 C64 51 51 68 32 77 C13 68 0 51 0 27 C15 20 28 9 32 -9 Z";
+const shapeId = `norse-scale-shape-${side}`;
+
+const rows = 25;
+const columns = 12;
+const shieldWidth = 64;
+const stepX = shieldWidth;
+const stepY = 40;
+const startX = side === "left" ? -216 : -192;
+const startY = -52;
+
+const getNoise = (row: number, column: number) => {
+  const sideSeed = side === "right" ? 91.17 : 37.41;
+  const value = Math.sin((row + 1) * 12.9898 + (column + 1) * 78.233 + sideSeed) * 43758.5453;
+
+  return value - Math.floor(value);
+};
+
+const scaleRows = Array.from({ length: rows }, (_, row) => {
+  const stagger = row % 2 === 0 ? 0 : shieldWidth / 2;
+
+  return {
+    delay: (row * 0.32).toFixed(3),
+    scales: Array.from({ length: columns }, (_, column) => {
+      const noise = getNoise(row, column);
+      const isFilled = noise > 0.982;
+
+      return {
+        isFilled,
+        x: startX + column * stepX + stagger,
+        y: startY,
+      };
+    }),
+  };
+});
+
+const rowMarkup = (row: (typeof scaleRows)[number]) =>
+  row.scales
+    .map(
+      (scale) => `
+        <use
+          class="norse-scale__body${scale.isFilled ? " norse-scale__body--filled" : ""}"
+          href="#${shapeId}"
+          x="${scale.x}"
+          y="${scale.y}"
+        />
+      `,
+    )
+    .join("");
+
+const cascadeMarkup =
+  scaleRows
+    .map(
+      (row, index) => `
+        <g class="norse-cascade-step" style="--delay: ${row.delay}s;">
+          <g class="norse-scale-row" transform="translate(0 ${index * stepY})">
+            ${rowMarkup(row)}
+          </g>
+        </g>
+      `,
+    )
+    .join("");
+---
+
+<svg
+  class={`norse-pattern norse-pattern--${side}`}
+  viewBox="0 0 360 960"
+  preserveAspectRatio="none"
+  aria-hidden="true"
+>
+  <defs>
+    <path id={shapeId} d={scalePath} />
+  </defs>
+  <rect class="norse-pattern__backdrop" width="360" height="960" />
+  <g class="norse-cascade" set:html={cascadeMarkup} />
+</svg>

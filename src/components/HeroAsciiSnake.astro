@@ -1,0 +1,1174 @@
+---
+import DecryptedText from "./DecryptedText.jsx";
+
+type MemoryFrame = {
+  src: string;
+  alt: string;
+  kind?: "photo" | "logo";
+};
+
+type HeroDispatch = {
+  eyebrow: string;
+  age: string;
+  text: string;
+  memoryFrames?: MemoryFrame[];
+};
+
+const childhoodFrames: MemoryFrame[] = [
+  { src: "/ben-child-car.jpg", alt: "Benjamin as a child building a wooden car" },
+  { src: "/ben-child-diagram.jpg", alt: "A childhood engineering diagram sketched by Benjamin" },
+  { src: "/ben-child-welding.jpg", alt: "Benjamin welding as a younger builder" },
+];
+
+const builderFrames: MemoryFrame[] = [
+  { src: "/ben-builder-robot-arm.jpg", alt: "A robotic arm Benjamin built as a young builder" },
+  { src: "/ben-builder-seismometer.jpg", alt: "A homemade seismometer electronics build" },
+  { src: "/ben-builder-electric-car.jpg", alt: "A small electric car prototype" },
+];
+
+const hackathonFrames: MemoryFrame[] = [
+  { src: "/hackathon-just-build.png", alt: "JustBuild hackathon logo", kind: "logo" },
+  { src: "/hackathon-defhacks.png", alt: "DefHacks logo", kind: "logo" },
+  { src: "/hackathon-byu-cutout.png", alt: "BYU logo", kind: "logo" },
+];
+
+const heroDispatches: HeroDispatch[] = [
+  {
+    eyebrow: "Origin",
+    age: "0-18",
+    text: "Six countries. One obsession: building.",
+    memoryFrames: childhoodFrames,
+  },
+  {
+    eyebrow: "Builder",
+    age: "8-15",
+    text: "Robotics. Planes. Seismometers. Electric cars.",
+    memoryFrames: builderFrames,
+  },
+  {
+    eyebrow: "Commerce",
+    age: "15",
+    text: "Built a 5-figure ecommerce brand at 15.",
+  },
+  {
+    eyebrow: "Competition",
+    age: "20",
+    text: "3x hackathon winner.",
+    memoryFrames: hackathonFrames,
+  },
+  {
+    eyebrow: "Conviction",
+    age: "20",
+    text: "Left BYU to build full-time.",
+  },
+  {
+    eyebrow: "Software",
+    age: "22",
+    text: "Developed and sold water-quality software in a six-figure exit.",
+  },
+  {
+    eyebrow: "Outbound",
+    age: "22",
+    text: "Scaled no-touch AI outbound to a $1.04M/year run-rate in under 2 weeks.",
+  },
+  {
+    eyebrow: "Redo",
+    age: "22",
+    text: "Joined Redo, Utah's fastest-growing startup.",
+  },
+  {
+    eyebrow: "Operator",
+    age: "22",
+    text: "GM, AI infrastructure.",
+  },
+  {
+    eyebrow: "Leverage",
+    age: "22",
+    text: "Cut merchant onboarding from 1+ week to ~20 minutes.",
+  },
+  {
+    eyebrow: "Scale",
+    age: "22",
+    text: "Automated 60% of onboarding. Eight figures onboarded autonomously.",
+  },
+  {
+    eyebrow: "Now",
+    age: "Now",
+    text: "Scaled fintech and fraud products across $500M+ in merchant GMV.",
+  },
+  {
+    eyebrow: "Signal",
+    age: "Now",
+    text: "I build where product, capital, and operations collide.",
+  },
+];
+
+const memoryFrameGroups = heroDispatches
+  .map((dispatch, dispatchIndex) => ({
+    dispatchIndex,
+    label: `${dispatch.eyebrow} images`,
+    kind: (dispatch.memoryFrames ?? []).every((frame) => frame.kind === "logo")
+      ? "logo"
+      : "photo",
+    frames: dispatch.memoryFrames ?? [],
+  }))
+  .filter((group) => group.frames.length > 0);
+
+const scalePath =
+  "M32 -9 C36 9 49 20 64 27 C64 51 51 68 32 77 C13 68 0 51 0 27 C15 20 28 9 32 -9 Z";
+const dispatchGridLines = [1, 1, 0.22, 0, 0, 0];
+const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
+---
+
+<section class="hero ascii-hero" id="serpent-signal" data-ascii-hero>
+  <div class="ascii-hero__sticky">
+    <pre
+      class="ascii-hero__output"
+      data-ascii-output
+      aria-label="Scroll-driven ASCII cobra animation"
+    >Loading serpent signal...</pre>
+
+    <div class="ascii-hero__copy">
+      <h1 class="hero__statement">
+        <DecryptedText
+          client:load
+          text="I build with "
+          parentClassName="decrypted-text decrypted-text--title decrypted-text--hero-lead"
+          className="decrypted-text__char--revealed"
+          encryptedClassName="decrypted-text__char--encrypted"
+          hiddenClassName="decrypted-text__char--hidden"
+          revealDirection="end"
+          disappearStart={0.42}
+          disappearEnd={0.92}
+          speed={90}
+        /><em><DecryptedText
+          client:load
+          text="bite"
+          parentClassName="decrypted-text decrypted-text--title"
+          className="decrypted-text__char--revealed"
+          encryptedClassName="decrypted-text__char--encrypted"
+          hiddenClassName="decrypted-text__char--hidden"
+          revealDirection="end"
+          disappearStart={0.04}
+          disappearEnd={0.34}
+          fuzzyBeforeDecrypt={true}
+          fuzzyProps={{
+            baseIntensity: 0.18,
+            hoverIntensity: 0.32,
+            enableHover: false,
+            fuzzRange: 12,
+            fps: 28,
+            direction: "horizontal",
+            textPaddingStart: 0,
+            textPaddingEnd: 18,
+            glitchMode: true,
+            glitchInterval: 1700,
+            glitchDuration: 140,
+            fontSize: "1em",
+            fontWeight: 400,
+            color: "#d9c77d",
+            className: "fuzzy-text fuzzy-text--bite",
+          }}
+          speed={90}
+        /></em>
+      </h1>
+      <p class="ascii-hero__subline">
+        <DecryptedText
+          client:load
+          text="Operator-builder across automation, fintech, and go-to-market."
+          parentClassName="decrypted-text decrypted-text--subline"
+          className="decrypted-text__char--revealed"
+          encryptedClassName="decrypted-text__char--encrypted"
+          hiddenClassName="decrypted-text__char--hidden"
+          revealDirection="end"
+          disappearStart={0.48}
+          disappearEnd={0.96}
+          speed={90}
+        />
+      </p>
+      <p class="ascii-hero__readout" data-ascii-readout>
+        Scroll to advance the signal.
+      </p>
+    </div>
+
+    <div class="ascii-hero__dispatches" aria-label="Selected proof points">
+      <div class="ascii-hero__dispatch-grid" aria-hidden="true">
+        {
+          dispatchGridFills.map((opacity, index) => (
+            <span
+              class="ascii-hero__dispatch-grid-fill"
+              style={`--grid-fill-index: ${index}; --grid-fill-opacity: ${opacity};`}
+            />
+          ))
+        }
+        {
+          dispatchGridLines.map((opacity, index) => (
+            <span
+              class="ascii-hero__dispatch-grid-line"
+              style={`--grid-line-index: ${index}; --grid-line-opacity: ${opacity};`}
+            />
+          ))
+        }
+      </div>
+
+      <div class="ascii-hero__dispatch-copy">
+        {
+          heroDispatches.map((dispatch, index) => (
+            <article
+              class="ascii-hero__dispatch"
+              data-hero-dispatch
+              data-dispatch-index={index}
+              style={`--dispatch-index: ${index};`}
+            >
+              <p class="ascii-hero__dispatch-kicker">
+                {`${(index + 1).toString().padStart(2, "0")} / ${heroDispatches.length.toString().padStart(2, "0")} ${dispatch.eyebrow}`}
+              </p>
+              <p class="ascii-hero__dispatch-text">{dispatch.text}</p>
+            </article>
+          ))
+        }
+      </div>
+
+      <div class="ascii-hero__memory-frames" data-memory-frames aria-label="Timeline images">
+        {
+          memoryFrameGroups.map((group) => (
+            <div
+              class={`ascii-hero__memory-frame-group${group.kind === "logo" ? " ascii-hero__memory-frame-group--logos" : ""}`}
+              data-memory-frame-group
+              data-memory-group-kind={group.kind}
+              data-memory-dispatch-index={group.dispatchIndex}
+              aria-label={group.label}
+              aria-hidden="true"
+            >
+              {
+                group.frames.map((frame, index) =>
+                  frame.kind === "logo" ? (
+                    <figure
+                      class="ascii-hero__memory-logo-item"
+                      style={`--memory-frame-index: ${index};`}
+                    >
+                      <img
+                        class="ascii-hero__memory-logo"
+                        src={frame.src}
+                        alt={frame.alt}
+                        loading="lazy"
+                      />
+                    </figure>
+                  ) : (
+                    <figure
+                      class="ascii-hero__memory-frame"
+                      data-memory-frame
+                      data-memory-frame-kind="photo"
+                      role="button"
+                      tabindex="0"
+                      aria-pressed="false"
+                      style={`--memory-frame-index: ${index};`}
+                    >
+                      <svg
+                        class="ascii-hero__memory-shield"
+                        viewBox="0 -10 64 88"
+                        preserveAspectRatio="none"
+                        aria-hidden={frame.src ? "true" : undefined}
+                        focusable="false"
+                      >
+                        <defs>
+                          <clipPath
+                            id={`memory-frame-clip-${group.dispatchIndex}-${index}`}
+                            clipPathUnits="userSpaceOnUse"
+                          >
+                            <path d={scalePath} />
+                          </clipPath>
+                        </defs>
+                        <path class="ascii-hero__memory-frame-backdrop" d={scalePath} />
+                        {
+                          frame.src ? (
+                            <image
+                              class="ascii-hero__memory-frame-image"
+                              href={frame.src}
+                              x="-1"
+                              y="-11"
+                              width="66"
+                              height="90"
+                              preserveAspectRatio="xMidYMid slice"
+                              clip-path={`url(#memory-frame-clip-${group.dispatchIndex}-${index})`}
+                            >
+                              <title>{frame.alt}</title>
+                            </image>
+                          ) : (
+                            <path
+                              class="ascii-hero__memory-frame-placeholder"
+                              d={scalePath}
+                            />
+                          )
+                        }
+                        <path class="ascii-hero__memory-frame-stroke" d={scalePath} />
+                      </svg>
+                      <figcaption class="sr-only">{frame.alt}</figcaption>
+                    </figure>
+                  )
+                )
+              }
+            </div>
+          ))
+        }
+      </div>
+    </div>
+
+    <div
+      class="ascii-hero__memory-lightbox"
+      data-memory-lightbox
+      aria-hidden="true"
+    >
+      <button
+        class="ascii-hero__memory-lightbox-nav ascii-hero__memory-lightbox-nav--prev"
+        type="button"
+        data-memory-lightbox-prev
+        aria-label="Previous image"
+      >
+        <svg
+          class="ascii-hero__memory-lightbox-nav-shape"
+          viewBox="-12 0 88 64"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d={scalePath} transform="rotate(90 32 32)" />
+        </svg>
+      </button>
+      <div
+        class="ascii-hero__memory-lightbox-frame"
+        data-memory-lightbox-frame
+        role="img"
+        aria-label="Selected image preview"
+      >
+        <svg
+          class="ascii-hero__memory-lightbox-shield"
+          viewBox="-2 -12 68 94"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <defs>
+            <clipPath id="memory-lightbox-clip" clipPathUnits="userSpaceOnUse">
+              <path d={scalePath} />
+            </clipPath>
+          </defs>
+          <path class="ascii-hero__memory-lightbox-backdrop" d={scalePath} />
+          <image
+            class="ascii-hero__memory-lightbox-image"
+            data-memory-lightbox-image
+            x="-1"
+            y="-11"
+            width="66"
+            height="90"
+            preserveAspectRatio="xMidYMid slice"
+            clip-path="url(#memory-lightbox-clip)"
+          />
+          <path class="ascii-hero__memory-lightbox-stroke" d={scalePath} />
+        </svg>
+        <span class="sr-only" data-memory-lightbox-caption>Selected childhood image</span>
+      </div>
+      <button
+        class="ascii-hero__memory-lightbox-nav ascii-hero__memory-lightbox-nav--next"
+        type="button"
+        data-memory-lightbox-next
+        aria-label="Next image"
+      >
+        <svg
+          class="ascii-hero__memory-lightbox-nav-shape"
+          viewBox="-12 0 88 64"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d={scalePath} transform="rotate(-90 32 32)" />
+        </svg>
+      </button>
+    </div>
+
+    <aside class="ascii-hero__age-timeline" aria-label="Age timeline">
+      <p class="ascii-hero__age-title">Age</p>
+      <ol class="ascii-hero__age-list">
+        {
+          heroDispatches.map((dispatch, index) => (
+            <li
+              class="ascii-hero__age-item"
+              data-hero-age
+              data-age-index={index}
+              style={`--age-index: ${index};`}
+            >
+              <svg
+                class="ascii-hero__age-scale"
+                viewBox="0 -10 64 88"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d={scalePath} />
+              </svg>
+              <span class="ascii-hero__age-value">{dispatch.age}</span>
+            </li>
+          ))
+        }
+      </ol>
+    </aside>
+  </div>
+
+  <video
+    data-ascii-video
+    src="/cobra-ascii.mp4"
+    muted
+    playsinline
+    preload="auto"
+  ></video>
+  <canvas data-ascii-canvas></canvas>
+</section>
+
+<script>
+  const asciiHeroSections =
+    document.querySelectorAll<HTMLElement>("[data-ascii-hero]");
+  const glyphRamp =
+    ".:-=+*#%@";
+  const fieldGlyphRamp =
+    ".::---===+++***###%%%@@";
+  const luminanceFloor = 0.1;
+  const foregroundBoost = 1.18;
+  const introScrollShare = 0.24;
+  const postIntroStartShare = introScrollShare + 0.04;
+  const snakeMotionStartShare = introScrollShare * 0.58;
+  const dispatchStartShare = 0.34;
+  const dispatchEndShare = 0.995;
+  const borderColor = [0x33, 0x45, 0x3d];
+  const signalColor = [0xd9, 0xc7, 0x7d];
+
+  const clamp = (value: number, min: number, max: number) =>
+    Math.min(Math.max(value, min), max);
+
+  const smoothstep = (edge0: number, edge1: number, value: number) => {
+    const amount = clamp((value - edge0) / (edge1 - edge0), 0, 1);
+
+    return amount * amount * (3 - 2 * amount);
+  };
+
+  const mixChannel = (from: number, to: number, amount: number) =>
+    Math.round(from + (to - from) * amount)
+      .toString(16)
+      .padStart(2, "0");
+
+  const mixColor = (from: number[], to: number[], amount: number) =>
+    `#${mixChannel(from[0], to[0], amount)}${mixChannel(from[1], to[1], amount)}${mixChannel(from[2], to[2], amount)}`;
+
+  asciiHeroSections.forEach((section) => {
+    const video = section.querySelector<HTMLVideoElement>("[data-ascii-video]");
+    const canvas = section.querySelector<HTMLCanvasElement>("[data-ascii-canvas]");
+    const output = section.querySelector<HTMLElement>("[data-ascii-output]");
+    const readout = section.querySelector<HTMLElement>("[data-ascii-readout]");
+    const stage = section.querySelector<HTMLElement>(".ascii-hero__sticky");
+    const dispatches =
+      Array.from(section.querySelectorAll<HTMLElement>("[data-hero-dispatch]"));
+    const ageItems =
+      Array.from(section.querySelectorAll<HTMLElement>("[data-hero-age]"));
+    const memoryFrameGroup =
+      section.querySelector<HTMLElement>("[data-memory-frames]");
+    const memoryFrameGroups =
+      Array.from(section.querySelectorAll<HTMLElement>("[data-memory-frame-group]"));
+    const memoryFrameItems =
+      Array.from(section.querySelectorAll<HTMLElement>("[data-memory-frame]"));
+    const memoryLightbox =
+      section.querySelector<HTMLElement>("[data-memory-lightbox]");
+    const memoryLightboxFrame =
+      section.querySelector<HTMLElement>("[data-memory-lightbox-frame]");
+    const memoryLightboxImage =
+      section.querySelector<SVGImageElement>("[data-memory-lightbox-image]");
+    const memoryLightboxCaption =
+      section.querySelector<HTMLElement>("[data-memory-lightbox-caption]");
+    const memoryLightboxPrev =
+      section.querySelector<HTMLButtonElement>("[data-memory-lightbox-prev]");
+    const memoryLightboxNext =
+      section.querySelector<HTMLButtonElement>("[data-memory-lightbox-next]");
+    const context = canvas?.getContext("2d");
+
+    if (!video || !canvas || !output || !readout || !stage || !context) {
+      return;
+    }
+
+    let duration = 0;
+    let pendingTime = 0;
+    let isSeeking = false;
+    let scrollQueued = false;
+    let idleTextureInterval: number | undefined;
+    let lastMotionAt = performance.now();
+    let texturePhase = 0;
+    let currentIntroProgress = 0;
+    let videoDrawRect = { x: 0, y: 0, width: 0, height: 0 };
+    let selectedMemoryFrame: HTMLElement | null = null;
+    let selectedMemoryIndex = -1;
+    let activeMemoryGroup: HTMLElement | null = null;
+
+    const setOutput = (text: string) => {
+      output.textContent = text;
+    };
+
+    const getFieldNoise = (x: number, y: number, salt: number) => {
+      const value =
+        Math.sin((x + 3) * 19.19 + (y + 5) * 37.37 + salt * 101.01) * 43758.5453;
+
+      return value - Math.floor(value);
+    };
+
+    const clearMemorySelection = () => {
+      selectedMemoryFrame = null;
+      selectedMemoryIndex = -1;
+      memoryFrameGroup?.classList.remove("has-selected");
+      memoryFrameGroups.forEach((group) => group.classList.remove("has-selected"));
+      memoryLightbox?.classList.remove("is-active");
+      memoryLightbox?.classList.remove("is-logo");
+      memoryLightbox?.setAttribute("aria-hidden", "true");
+      memoryFrameItems.forEach((frame) => {
+        frame.classList.remove("is-selected");
+        frame.setAttribute("aria-pressed", "false");
+      });
+    };
+
+    const getActiveMemoryFrameItems = () => {
+      const group = activeMemoryGroup;
+
+      if (!group) return [];
+
+      return Array.from(group.querySelectorAll<HTMLElement>("[data-memory-frame]"));
+    };
+
+    const selectMemoryFrame = (frame: HTMLElement) => {
+      const activeItems = getActiveMemoryFrameItems();
+      const nextIndex = activeItems.indexOf(frame);
+
+      if (nextIndex < 0) return;
+
+      if (selectedMemoryFrame === frame) {
+        clearMemorySelection();
+        return;
+      }
+
+      selectedMemoryFrame = frame;
+      selectedMemoryIndex = nextIndex;
+      memoryFrameGroup?.classList.add("has-selected");
+      memoryFrameGroups.forEach((group) => {
+        group.classList.toggle("has-selected", group.contains(frame));
+      });
+      memoryFrameItems.forEach((item) => {
+        const isSelected = item === frame;
+
+        item.classList.toggle("is-selected", isSelected);
+        item.setAttribute("aria-pressed", isSelected ? "true" : "false");
+      });
+
+      const image = frame.querySelector<SVGImageElement>("image");
+      const caption = frame.querySelector<HTMLElement>("figcaption");
+      const href = image?.getAttribute("href") || "";
+      const alt = caption?.textContent?.trim() || "Selected childhood image";
+      const isLogoFrame = frame.dataset.memoryFrameKind === "logo";
+
+      if (memoryLightboxImage && href) {
+        memoryLightboxImage.setAttribute("href", href);
+        memoryLightboxImage.setAttribute("x", isLogoFrame ? "5" : "-1");
+        memoryLightboxImage.setAttribute("y", isLogoFrame ? "2" : "-11");
+        memoryLightboxImage.setAttribute("width", isLogoFrame ? "54" : "66");
+        memoryLightboxImage.setAttribute("height", isLogoFrame ? "62" : "90");
+        memoryLightboxImage.setAttribute(
+          "preserveAspectRatio",
+          isLogoFrame ? "xMidYMid meet" : "xMidYMid slice",
+        );
+      }
+
+      if (memoryLightboxCaption) {
+        memoryLightboxCaption.textContent = alt;
+      }
+
+      memoryLightbox?.classList.add("is-active");
+      memoryLightbox?.classList.toggle("is-logo", isLogoFrame);
+      memoryLightbox?.setAttribute("aria-hidden", "false");
+    };
+
+    const moveMemorySelection = (direction: 1 | -1) => {
+      const activeItems = getActiveMemoryFrameItems();
+
+      if (!activeItems.length) return;
+
+      const currentIndex = selectedMemoryIndex >= 0 ? selectedMemoryIndex : 0;
+      const nextIndex =
+        (currentIndex + direction + activeItems.length) % activeItems.length;
+
+      selectMemoryFrame(activeItems[nextIndex]);
+    };
+
+    memoryFrameItems.forEach((frame) => {
+      frame.addEventListener("click", (event) => {
+        event.stopPropagation();
+        selectMemoryFrame(frame);
+      });
+
+      frame.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+
+        event.preventDefault();
+        selectMemoryFrame(frame);
+      });
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!selectedMemoryFrame) return;
+      if (memoryFrameGroup?.contains(event.target as Node)) return;
+
+      clearMemorySelection();
+    });
+
+    memoryLightbox?.addEventListener("click", () => {
+      clearMemorySelection();
+    });
+
+    memoryLightboxFrame?.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        clearMemorySelection();
+      }
+
+      if (!selectedMemoryFrame) return;
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        moveMemorySelection(-1);
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        moveMemorySelection(1);
+      }
+    });
+
+    memoryLightboxPrev?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      moveMemorySelection(-1);
+    });
+
+    memoryLightboxNext?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      moveMemorySelection(1);
+    });
+
+    const updateDispatches = (progress: number) => {
+      if (!dispatches.length) return;
+
+      const rawDispatchProgress = clamp(
+        (progress - dispatchStartShare) / (dispatchEndShare - dispatchStartShare),
+        0,
+        1,
+      );
+      const hasStarted = progress >= dispatchStartShare;
+      const activeIndex = hasStarted
+        ? Math.min(Math.floor(rawDispatchProgress * dispatches.length), dispatches.length - 1)
+        : -1;
+      const activeAgeIndex = Math.max(activeIndex, 0);
+      const segmentProgress = activeIndex >= 0
+        ? rawDispatchProgress * dispatches.length - activeIndex
+        : 0;
+      const columnIntroOpacity = smoothstep(0, 0.025, rawDispatchProgress);
+      const columnExitOpacity = 1 - smoothstep(0.968, 1, rawDispatchProgress);
+      const columnOpacity = hasStarted
+        ? clamp(columnIntroOpacity * columnExitOpacity, 0, 1)
+        : 0;
+      const isCompactStack = window.matchMedia("(max-width: 680px)").matches;
+      const stackDepth = isCompactStack ? 0 : 4;
+      const stackStates = [
+        { content: 1 },
+        { content: 0.82 },
+        { content: 0.28 },
+        { content: 0 },
+        { content: 0 },
+      ];
+
+      section.style.setProperty("--active-dispatch", `${activeIndex}`);
+      section.style.setProperty("--age-progress", rawDispatchProgress.toFixed(3));
+      section.style.setProperty("--dispatch-grid-opacity", columnOpacity.toFixed(3));
+      const nextActiveMemoryGroup = memoryFrameGroups.find((group) =>
+        Number(group.dataset.memoryDispatchIndex) === activeIndex
+      ) ?? null;
+      const memoryFramesVisible = Boolean(nextActiveMemoryGroup) && columnOpacity > 0.08;
+
+      section.style.setProperty(
+        "--memory-frames-opacity",
+        memoryFramesVisible ? columnOpacity.toFixed(3) : "0",
+      );
+      memoryFrameGroup?.classList.toggle("is-visible", memoryFramesVisible);
+      memoryFrameGroups.forEach((group) => {
+        const isActiveGroup = memoryFramesVisible && group === nextActiveMemoryGroup;
+
+        group.classList.toggle("is-active", isActiveGroup);
+        group.setAttribute("aria-hidden", isActiveGroup ? "false" : "true");
+      });
+      activeMemoryGroup = memoryFramesVisible ? nextActiveMemoryGroup : null;
+
+      if (
+        !memoryFramesVisible ||
+        (selectedMemoryFrame && activeMemoryGroup && !activeMemoryGroup.contains(selectedMemoryFrame))
+      ) {
+        clearMemorySelection();
+      }
+
+      dispatches.forEach((dispatch, index) => {
+        const stackIndex = index - activeIndex;
+        const isActive = hasStarted && stackIndex === 0;
+        const isStacked = hasStarted && stackIndex > 0 && stackIndex <= stackDepth;
+        const isVisible = isActive || isStacked;
+        const state = stackStates[stackIndex] || stackStates[stackStates.length - 1];
+        const revealStart = 0.14 + Math.max(stackIndex - 1, 0) * 0.05;
+        const revealEnd = 0.58 + Math.max(stackIndex - 1, 0) * 0.05;
+        const stackReveal = stackIndex <= 0
+          ? 1
+          : smoothstep(revealStart, revealEnd, segmentProgress);
+        const cardOpacity = isVisible ? columnOpacity * stackReveal : 0;
+        const contentOpacity = isVisible
+          ? state.content * stackReveal
+          : 0;
+
+        dispatch.classList.toggle("is-active", isActive);
+        dispatch.classList.toggle("is-stacked", isStacked);
+        dispatch.classList.toggle("is-skeleton", isVisible && stackIndex >= 3);
+        dispatch.setAttribute("aria-hidden", isActive ? "false" : "true");
+        dispatch.style.setProperty("--dispatch-opacity", cardOpacity.toFixed(3));
+        dispatch.style.setProperty("--dispatch-stack-index", `${Math.max(stackIndex, 0)}`);
+        dispatch.style.setProperty("--dispatch-y", "0px");
+        dispatch.style.setProperty("--dispatch-content-opacity", contentOpacity.toFixed(3));
+        dispatch.style.setProperty("--dispatch-progress", isActive ? segmentProgress.toFixed(3) : "0");
+      });
+
+      ageItems.forEach((item, index) => {
+        const isActive = index === activeAgeIndex;
+        const isPast = index < activeAgeIndex;
+        const lineProgress = index < activeAgeIndex
+          ? 1
+          : index === activeAgeIndex && activeIndex >= 0
+            ? smoothstep(0.12, 0.96, segmentProgress)
+            : 0;
+
+        item.classList.toggle("is-active", isActive);
+        item.classList.toggle("is-past", isPast);
+        item.setAttribute("aria-current", isActive ? "step" : "false");
+        item.style.setProperty("--age-segment-progress", lineProgress.toFixed(3));
+        item.style.setProperty("--age-segment-slide", `${((1 - lineProgress) * 4).toFixed(2)}px`);
+      });
+    };
+
+    const updateHeroState = (progress: number) => {
+      section.style.setProperty("--ascii-hero-progress", progress.toFixed(3));
+
+      const rawIntroProgress = clamp(progress / introScrollShare, 0, 1);
+      const introProgress = smoothstep(0, 1, rawIntroProgress);
+      const ageTimelineOpacity = smoothstep(postIntroStartShare, dispatchStartShare, progress);
+      const outputOffset = (() => {
+        if (window.matchMedia("(max-width: 680px)").matches) return 0;
+
+        const viewportWidth = window.innerWidth || stage.clientWidth || 1280;
+        const finalOffset = clamp(viewportWidth * -0.11, -220, -120);
+        const offsetProgress = smoothstep(postIntroStartShare, 0.52, progress);
+
+        return finalOffset * offsetProgress;
+      })();
+
+      currentIntroProgress = introProgress;
+      section.style.setProperty("--ascii-intro-progress", introProgress.toFixed(3));
+      stage.style.setProperty("--ascii-output-offset-x", `${outputOffset.toFixed(2)}px`);
+      section.style.setProperty("--age-timeline-opacity", ageTimelineOpacity.toFixed(3));
+      section.style.setProperty("--ascii-copy-opacity", "1");
+      section.style.setProperty("--ascii-copy-y", "0px");
+      section.style.setProperty("--ascii-snake-color", mixColor(borderColor, signalColor, introProgress));
+      updateDispatches(progress);
+    };
+
+    const updateReadout = (progress: number, time: number) => {
+      section.style.setProperty("--ascii-hero-progress", progress.toFixed(3));
+
+      if (!duration) {
+        readout.textContent = "Scroll to advance the signal.";
+        return;
+      }
+
+      readout.textContent = `${Math.round(progress * 100)
+        .toString()
+        .padStart(2, "0")}% / ${time.toFixed(2)}s`;
+    };
+
+    const getScrollProgress = () => {
+      const start = section.offsetTop;
+      const end = section.offsetTop + section.offsetHeight - window.innerHeight;
+
+      if (end <= start) return 0;
+      return clamp((window.scrollY - start) / (end - start), 0, 1);
+    };
+
+    const getHeroExitProgress = () => {
+      const start = section.offsetTop;
+      const end = section.offsetTop + section.offsetHeight;
+
+      if (end <= start) return 0;
+      return clamp((window.scrollY - start) / (end - start), 0, 1);
+    };
+
+    const resizeCanvas = () => {
+      const stageHeight = stage.clientHeight || window.innerHeight;
+      const stageWidth = stage.clientWidth || window.innerWidth;
+      const cellWidthRatio = 0.6;
+      const lineHeightRatio = 0.84;
+      const videoAspect = video.videoWidth && video.videoHeight
+        ? video.videoWidth / video.videoHeight
+        : 9 / 16;
+      const rows = Math.round(clamp(stageHeight / 6.6, 96, 154));
+      const fontSize = stageHeight / (rows * lineHeightRatio);
+      const fullWidthColumns = Math.ceil(stageWidth / (fontSize * cellWidthRatio));
+      const nativeSnakeColumns = Math.round(rows * videoAspect * (lineHeightRatio / cellWidthRatio));
+      const columns = Math.round(clamp(fullWidthColumns, 72, 320));
+      const drawWidth = Math.min(nativeSnakeColumns, columns);
+
+      canvas.width = columns;
+      canvas.height = rows;
+      videoDrawRect = {
+        x: Math.round((columns - drawWidth) / 2),
+        y: 0,
+        width: drawWidth,
+        height: rows,
+      };
+      stage.style.setProperty("--ascii-hero-font-size", `${fontSize.toFixed(2)}px`);
+    };
+
+    const getSnakeSignal = (
+      red: number,
+      green: number,
+      blue: number,
+      luminance: number,
+    ) => {
+      const maxChannel = Math.max(red, green, blue);
+      const minChannel = Math.min(red, green, blue);
+      const saturation = maxChannel === 0 ? 0 : (maxChannel - minChannel) / maxChannel;
+      const warmth = (red - blue) / 255;
+      const goldBalance = (red + green * 0.68 - blue * 1.45) / 255;
+      const isWarmScale = warmth > 0.055 && goldBalance > 0.075;
+      const isBrightBelly = luminance > 0.32 && warmth > 0.02 && red >= green * 0.82;
+      const isShadowedScale =
+        saturation > 0.12 && warmth > 0 && red > blue + 5 && green >= blue;
+
+      if (
+        luminance < luminanceFloor ||
+        (!isWarmScale && !isBrightBelly && !isShadowedScale)
+      ) {
+        return 0;
+      }
+
+      return clamp(
+        goldBalance * 0.95 + saturation * 0.52 + (luminance - luminanceFloor) * 0.7,
+        0,
+        1,
+      );
+    };
+
+    const getTextureNoise = (x: number, y: number, phase: number) => {
+      const value = Math.sin((x + 1) * 17.17 + (y + 1) * 43.43 + phase * 11.31) * 43758.5453;
+
+      return value - Math.floor(value);
+    };
+
+    const renderFrame = (phase = 0) => {
+      if (!video.videoWidth || !canvas.width || !canvas.height) return;
+
+      const width = canvas.width;
+      const height = canvas.height;
+
+      context.fillStyle = "#000000";
+      context.fillRect(0, 0, width, height);
+      context.drawImage(
+        video,
+        videoDrawRect.x,
+        videoDrawRect.y,
+        videoDrawRect.width,
+        videoDrawRect.height,
+      );
+
+      const { data } = context.getImageData(0, 0, width, height);
+      const luminanceMap = new Float32Array(width * height);
+      const signalMap = new Float32Array(width * height);
+      const composedCells = new Array<string>(width * height).fill(" ");
+      const composedStrength = new Float32Array(width * height);
+      const lines: string[] = [];
+
+      for (let index = 0; index < signalMap.length; index += 1) {
+        const dataIndex = index * 4;
+        const red = data[dataIndex];
+        const green = data[dataIndex + 1];
+        const blue = data[dataIndex + 2];
+        const luminance = (0.2126 * red + 0.7152 * green + 0.0722 * blue) / 255;
+
+        luminanceMap[index] = luminance;
+        signalMap[index] = getSnakeSignal(red, green, blue, luminance);
+      }
+
+      const getLocalContrast = (x: number, y: number, luminance: number) => {
+        let contrast = 0;
+
+        for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+          for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+            if (!offsetX && !offsetY) continue;
+
+            const neighborX = x + offsetX;
+            const neighborY = y + offsetY;
+
+            if (neighborX < 0 || neighborX >= width || neighborY < 0 || neighborY >= height) {
+              continue;
+            }
+
+            contrast = Math.max(
+              contrast,
+              Math.abs(luminance - luminanceMap[neighborY * width + neighborX]),
+            );
+          }
+        }
+
+        return contrast;
+      };
+
+      const getNeighborSignal = (x: number, y: number) => {
+        let signal = 0;
+
+        for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+          for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+            const neighborX = x + offsetX;
+            const neighborY = y + offsetY;
+
+            if (neighborX < 0 || neighborX >= width || neighborY < 0 || neighborY >= height) {
+              continue;
+            }
+
+            signal = Math.max(signal, signalMap[neighborY * width + neighborX]);
+          }
+        }
+
+        return signal;
+      };
+
+      const getSourcePoint = (x: number, y: number, phase = 0) => {
+        const sourceXNoise = getFieldNoise(x, y, 7);
+        const sourceYNoise = getFieldNoise(x, y, 13);
+        const jitterGate = phase && getTextureNoise(x, y, phase * 0.19) > 0.992;
+        const jitterStrength = jitterGate ? Math.max(0, 1 - currentIntroProgress) * 0.7 : 0;
+        const jitterX = Math.round((getTextureNoise(x, y, phase * 0.61) - 0.5) * 1.4 * jitterStrength);
+        const jitterY = Math.round((getTextureNoise(x, y, phase * 0.83) - 0.5) * 1.2 * jitterStrength);
+
+        return {
+          x: clamp(Math.floor(sourceXNoise * width) + jitterX, 0, width - 1),
+          y: clamp(Math.floor(sourceYNoise * height) + jitterY, 0, height - 1),
+        };
+      };
+
+      const placeComposedCell = (
+        x: number,
+        y: number,
+        glyph: string,
+        strength: number,
+      ) => {
+        if (x < 0 || x >= width || y < 0 || y >= height) return;
+
+        const index = y * width + x;
+
+        if (strength < composedStrength[index]) return;
+
+        composedCells[index] = glyph;
+        composedStrength[index] = strength;
+      };
+
+      const assemblyProgress = currentIntroProgress;
+      const assemblyEase = smoothstep(0, 1, assemblyProgress);
+
+      for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+          const index = y * width + x;
+          const luminance = luminanceMap[index];
+          const localContrast = getLocalContrast(x, y, luminance);
+          const neighborSignal = getNeighborSignal(x, y);
+          const snakeSignal =
+            signalMap[index] ||
+            (neighborSignal > 0.18 && localContrast > 0.035 && luminance > luminanceFloor
+              ? clamp(neighborSignal * 0.32 + localContrast * 2.2, 0.08, 0.62)
+              : 0);
+
+          if (!snakeSignal) {
+            continue;
+          }
+
+          const textureNoise = phase ? getTextureNoise(x, y, phase) : 0.5;
+          const textureAmount = phase
+            ? 0.035 * clamp(snakeSignal + localContrast * 2, 0.25, 1)
+            : 0;
+          const shaped = clamp(
+            (((luminance - luminanceFloor) / (1 - luminanceFloor)) * 0.58 +
+              snakeSignal * 0.34 +
+              localContrast * 1.2) *
+              foregroundBoost +
+              (textureNoise - 0.5) * textureAmount,
+            0,
+            1,
+          );
+          const glyphIndex = Math.round(shaped * (glyphRamp.length - 1));
+          const targetGlyph = glyphRamp[glyphIndex];
+
+          if (assemblyProgress >= 0.995) {
+            placeComposedCell(x, y, targetGlyph, shaped + 1);
+            continue;
+          }
+
+          const source = getSourcePoint(x, y, phase);
+          const assembleDelay = getFieldNoise(x, y, 23) * 0.22;
+          const localAssembly = smoothstep(assembleDelay, 1, assemblyEase);
+          const composedX = Math.round(source.x + (x - source.x) * localAssembly);
+          const composedY = Math.round(source.y + (y - source.y) * localAssembly);
+          const baseSourceGlyphIndex = Math.floor(getFieldNoise(x, y, 31) * fieldGlyphRamp.length);
+          const glyphNoise = phase ? getTextureNoise(x, y, phase * 0.47) : 0;
+          const glyphShift =
+            assemblyProgress < 0.55 && glyphNoise > 0.982
+              ? 1
+              : 0;
+          const sourceGlyphIndex = (baseSourceGlyphIndex + glyphShift) % fieldGlyphRamp.length;
+          const glyphSwitch = smoothstep(0.46, 0.92, localAssembly);
+          const glyph =
+            glyphSwitch > getFieldNoise(x, y, 37)
+              ? targetGlyph
+              : fieldGlyphRamp[sourceGlyphIndex] || ".";
+          const strength = shaped + localAssembly + snakeSignal;
+
+          placeComposedCell(composedX, composedY, glyph, strength);
+        }
+      }
+
+      for (let y = 0; y < height; y += 1) {
+        lines.push(composedCells.slice(y * width, (y + 1) * width).join(""));
+      }
+
+      setOutput(lines.join("\n"));
+    };
+
+    const seekTo = (time: number) => {
+      if (!duration || Number.isNaN(time)) return;
+
+      pendingTime = clamp(time, 0, Math.max(duration - 0.04, 0));
+
+      if (isSeeking) return;
+
+      isSeeking = true;
+      video.currentTime = pendingTime;
+    };
+
+    const syncToScroll = () => {
+      scrollQueued = false;
+
+      if (!duration) return;
+
+      const progress = getScrollProgress();
+      const exitProgress = getHeroExitProgress();
+      updateHeroState(progress);
+
+      const snakeProgress = clamp(
+        (exitProgress - snakeMotionStartShare) / (1 - snakeMotionStartShare),
+        0,
+        1,
+      );
+      const time = snakeProgress * Math.max(duration - 0.04, 0);
+
+      updateReadout(progress, time);
+
+      if (Math.abs(video.currentTime - time) > 0.035) {
+        seekTo(time);
+      } else {
+        renderFrame();
+      }
+    };
+
+    const queueScrollSync = () => {
+      lastMotionAt = performance.now();
+
+      if (scrollQueued) return;
+
+      scrollQueued = true;
+      window.requestAnimationFrame(syncToScroll);
+    };
+
+    const startIdleTexture = () => {
+      if (idleTextureInterval || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+      }
+
+      idleTextureInterval = window.setInterval(() => {
+        if (document.hidden || isSeeking || !duration) return;
+        if (performance.now() - lastMotionAt < 320) return;
+
+        texturePhase += 1;
+        renderFrame(texturePhase);
+      }, 520);
+    };
+
+    const handleMetadata = () => {
+      duration = video.duration || 0;
+      resizeCanvas();
+
+      const isCompactScroll = window.matchMedia("(max-width: 680px)").matches;
+      const dispatchScrollVh = dispatches.length * (isCompactScroll ? 92 : 118);
+      const videoScrollVh = duration * (isCompactScroll ? 44 : 52);
+      const baseScrollVh = isCompactScroll ? 360 : 460;
+      const scrollVh = clamp(
+        videoScrollVh + dispatchScrollVh + baseScrollVh,
+        isCompactScroll ? 1320 : 1680,
+        isCompactScroll ? 1900 : 2200,
+      );
+      section.style.setProperty("--ascii-hero-height", `${scrollVh}svh`);
+      updateHeroState(getScrollProgress());
+
+      seekTo(0);
+      queueScrollSync();
+      startIdleTexture();
+    };
+
+    video.addEventListener("loadedmetadata", handleMetadata);
+
+    video.addEventListener("loadeddata", () => {
+      resizeCanvas();
+      renderFrame();
+      queueScrollSync();
+    });
+
+    video.addEventListener("seeked", () => {
+      isSeeking = false;
+      renderFrame();
+
+      if (Math.abs(video.currentTime - pendingTime) > 0.035) {
+        seekTo(pendingTime);
+      }
+    });
+
+    window.addEventListener("scroll", queueScrollSync, { passive: true });
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+      queueScrollSync();
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        lastMotionAt = performance.now();
+        queueScrollSync();
+      }
+    });
+
+    if (video.readyState >= 1) {
+      handleMetadata();
+    } else {
+      video.load();
+    }
+  });
+</script>
