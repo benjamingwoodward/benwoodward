@@ -26,12 +26,18 @@ html {
   background: var(--background);
   color: var(--foreground);
   scroll-behavior: smooth;
+  scrollbar-width: none;
 }
 
 body {
   min-height: 100svh;
   margin: 0;
   background: var(--background);
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
 }
 
 body::selection {
@@ -212,7 +218,8 @@ p {
 }
 
 .social-scale-stack:hover,
-.social-scale-stack:focus-within {
+.social-scale-stack:focus-within,
+.footer-cobra-complete .social-scale-stack {
   --social-scale-gap: var(--social-scale-hover-gap);
 }
 
@@ -249,7 +256,8 @@ p {
 }
 
 .social-scale-stack:hover .social-scale,
-.social-scale-stack:focus-within .social-scale {
+.social-scale-stack:focus-within .social-scale,
+.footer-cobra-complete .social-scale-stack .social-scale {
   --social-scale-shift: 0;
 }
 
@@ -274,6 +282,14 @@ p {
 }
 
 .social-scale:hover .social-scale__shape path {
+  stroke: #ffffff;
+}
+
+.footer-cobra-complete .social-scale-stack .social-scale {
+  color: #ffffff;
+}
+
+.footer-cobra-complete .social-scale-stack .social-scale__shape path {
   stroke: #ffffff;
 }
 
@@ -392,7 +408,7 @@ p {
 
 .ascii-hero .hero__statement {
   max-width: min(930px, 92vw);
-  color: #d9c77d;
+  color: #fff;
   text-align: center;
   white-space: nowrap;
 }
@@ -470,7 +486,7 @@ p {
 
 .ascii-hero__subline {
   max-width: min(590px, 92vw);
-  color: var(--foreground);
+  color: var(--muted);
   font-size: clamp(0.95rem, 1.8vw, 1.15rem);
   letter-spacing: 0;
   line-height: 1.45;
@@ -578,16 +594,12 @@ p {
 .ascii-hero__memory-frames {
   position: relative;
   grid-area: 1 / 1;
-  --memory-frame-width: clamp(88px, 8.6vw, 118px);
-  --memory-frame-hover-gap: clamp(14px, 1.6vw, 24px);
-  --memory-frame-gap: 0px;
+  --memory-frame-width: clamp(78px, 7.3vw, 102px);
+  --memory-frame-hover-gap: 16px;
   top: calc(var(--dispatch-row-height) * 2 + clamp(34px, 5svh, 54px));
   right: 0;
   display: block;
-  width: min(
-    var(--dispatch-column-width),
-    calc((var(--memory-frame-width) * 3) + (var(--memory-frame-hover-gap) * 2))
-  );
+  width: var(--dispatch-column-width);
   align-self: start;
   justify-self: end;
   height: calc(var(--memory-frame-width) * 1.375);
@@ -604,13 +616,13 @@ p {
 .ascii-hero__memory-frame-group {
   position: absolute;
   inset: 0;
-  display: flex;
-  column-gap: var(--memory-frame-gap);
-  justify-content: flex-end;
+  display: grid;
+  align-content: start;
+  justify-items: end;
+  row-gap: clamp(10px, 1.2vw, 16px);
   opacity: 0;
   pointer-events: none;
   transition:
-    column-gap 260ms cubic-bezier(0.22, 1, 0.36, 1),
     opacity 180ms linear;
 }
 
@@ -619,51 +631,64 @@ p {
 }
 
 .ascii-hero__memory-frame-group--logos {
-  --memory-frame-gap: clamp(12px, 1.4vw, 18px);
+  --memory-logo-gap: clamp(12px, 1.4vw, 18px);
   align-items: center;
 }
 
-.ascii-hero__memory-frame-group:hover,
-.ascii-hero__memory-frame-group:focus-within,
-.ascii-hero__memory-frame-group.has-selected {
-  --memory-frame-gap: var(--memory-frame-hover-gap);
+.ascii-hero__memory-frame-group--mixed {
+  --memory-logo-gap: clamp(12px, 1.4vw, 18px);
 }
 
-.ascii-hero__memory-frame-group--logos:hover,
-.ascii-hero__memory-frame-group--logos:focus-within {
-  --memory-frame-gap: clamp(14px, 1.7vw, 22px);
+.ascii-hero__memory-logo-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-end;
+  column-gap: var(--memory-logo-gap, clamp(12px, 1.4vw, 18px));
+  transition: none;
+}
+
+.ascii-hero__memory-photo-row {
+  position: relative;
+  width: 100%;
+  height: calc(var(--memory-frame-width) * 1.375);
 }
 
 .ascii-hero__memory-frame {
-  position: relative;
+  position: absolute;
+  top: 0;
+  right: var(--memory-frame-collapsed-right, 0);
   z-index: calc(5 - var(--memory-frame-index, 0));
   width: var(--memory-frame-width);
   aspect-ratio: 64 / 88;
   margin: 0;
-  flex: 0 0 var(--memory-frame-width);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   cursor: zoom-in;
+  -webkit-tap-highlight-color: transparent;
+  isolation: isolate;
+  line-height: 0;
   opacity: calc(1 - (var(--memory-frame-index, 0) * 0.12));
   outline: none;
-  transform: translateX(var(--memory-frame-shift, 0)) translateY(var(--memory-frame-lift, 0))
-    scale(var(--memory-frame-scale, 1));
+  transform: translateY(var(--memory-frame-lift, 0)) scale(var(--memory-frame-scale, 1));
   transform-origin: 50% 72%;
   transition:
     opacity 180ms ease,
+    right 260ms cubic-bezier(0.22, 1, 0.36, 1),
     transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.ascii-hero__memory-frame:nth-child(1) {
-  --memory-frame-shift: calc(var(--memory-frame-width) * 0.72);
-}
-
-.ascii-hero__memory-frame:nth-child(2) {
-  --memory-frame-shift: calc(var(--memory-frame-width) * 0.36);
+.ascii-hero__memory-frame::before,
+.ascii-hero__memory-frame::after {
+  display: none;
+  content: none;
 }
 
 .ascii-hero__memory-frame-group:hover .ascii-hero__memory-frame,
 .ascii-hero__memory-frame-group:focus-within .ascii-hero__memory-frame,
 .ascii-hero__memory-frame-group.has-selected .ascii-hero__memory-frame {
-  --memory-frame-shift: 0px;
+  right: var(--memory-frame-expanded-right, var(--memory-frame-collapsed-right, 0));
 }
 
 .ascii-hero__memory-frame:hover {
@@ -696,10 +721,6 @@ p {
   border: 0;
   box-sizing: border-box;
   opacity: 1;
-  transform: translateY(var(--memory-logo-lift, 0));
-  transition:
-    opacity 180ms ease,
-    transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .ascii-hero__memory-logo-item:nth-child(1) {
@@ -716,11 +737,6 @@ p {
   height: clamp(31px, 3.6vw, 45px);
 }
 
-.ascii-hero__memory-logo-item:hover {
-  --memory-logo-lift: -2px;
-  opacity: 1;
-}
-
 .ascii-hero__memory-logo {
   display: block;
   width: 100%;
@@ -734,8 +750,6 @@ p {
   z-index: 125;
   inset: 0;
   display: grid;
-  grid-template-columns: minmax(48px, 1fr) auto minmax(48px, 1fr);
-  gap: clamp(14px, 3vw, 36px);
   place-items: center;
   padding: clamp(20px, 5vw, 56px);
   background: rgb(2 22 17 / 0.52);
@@ -748,64 +762,6 @@ p {
 .ascii-hero__memory-lightbox.is-active {
   opacity: 1;
   pointer-events: auto;
-}
-
-.ascii-hero__memory-lightbox-nav {
-  display: grid;
-  width: clamp(42px, 4.8vw, 58px);
-  aspect-ratio: 88 / 64;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  opacity: 0;
-  transform: translateY(10px);
-  transition:
-    opacity 240ms ease,
-    transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.ascii-hero__memory-lightbox.is-active .ascii-hero__memory-lightbox-nav {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.ascii-hero__memory-lightbox-nav:hover,
-.ascii-hero__memory-lightbox-nav:focus-visible {
-  outline: none;
-}
-
-.ascii-hero__memory-lightbox-nav-shape {
-  grid-area: 1 / 1;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.ascii-hero__memory-lightbox-nav-shape path {
-  fill: #33453d;
-  stroke: #33453d;
-  stroke-linejoin: round;
-  stroke-width: 1.05;
-  transition:
-    fill 180ms ease,
-    stroke 180ms ease;
-  vector-effect: non-scaling-stroke;
-}
-
-.ascii-hero__memory-lightbox-nav:hover .ascii-hero__memory-lightbox-nav-shape path,
-.ascii-hero__memory-lightbox-nav:focus-visible .ascii-hero__memory-lightbox-nav-shape path {
-  fill: #50665c;
-  stroke: #50665c;
-}
-
-.ascii-hero__memory-lightbox-nav--prev {
-  justify-self: end;
-}
-
-.ascii-hero__memory-lightbox-nav--next {
-  justify-self: start;
 }
 
 .ascii-hero__memory-lightbox-frame {
@@ -858,6 +814,8 @@ p {
   width: 100%;
   height: 100%;
   overflow: visible;
+  shape-rendering: geometricPrecision;
+  transform: translateZ(0);
 }
 
 .ascii-hero__memory-frame-backdrop {
@@ -867,10 +825,11 @@ p {
 .ascii-hero__memory-frame-image {
   filter: grayscale(1) contrast(1.08) brightness(0.54);
   opacity: 0.62;
-  mix-blend-mode: luminosity;
+  mix-blend-mode: normal;
   transition:
     filter 220ms ease,
     opacity 220ms ease;
+  will-change: filter, opacity;
 }
 
 .ascii-hero__memory-frame:hover .ascii-hero__memory-frame-image,
@@ -878,7 +837,6 @@ p {
 .ascii-hero__memory-frame.is-selected .ascii-hero__memory-frame-image {
   filter: grayscale(0) contrast(1) brightness(1);
   opacity: 1;
-  mix-blend-mode: normal;
 }
 
 .ascii-hero__memory-frame-placeholder {
@@ -935,9 +893,10 @@ p {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  color: color-mix(in srgb, var(--muted), #33453d 24%);
+  color: var(--muted);
   font-size: 0.72rem;
   font-weight: 400;
+  font-variant-ligatures: none;
   letter-spacing: 0.12em;
   line-height: 1.25;
   opacity: var(--dispatch-content-opacity, 1);
@@ -947,9 +906,10 @@ p {
 
 .ascii-hero__dispatch-text {
   max-width: 24ch;
-  color: #d9c77d;
+  color: #ffffff;
   font-size: clamp(1.05rem, 1.65vw, 1.48rem);
   font-weight: 400;
+  font-variant-ligatures: none;
   letter-spacing: 0;
   line-height: 1.22;
   opacity: var(--dispatch-content-opacity, 1);
@@ -967,7 +927,7 @@ p {
   height: var(--hero-rail-height);
   align-content: center;
   gap: 12px;
-  color: var(--muted);
+  color: #d9c77d;
   padding: 12px 10px 12px 14px;
   background: linear-gradient(90deg, rgba(2, 22, 17, 0.9), rgba(2, 22, 17, 0));
   opacity: var(--age-timeline-opacity, 0);
@@ -977,7 +937,7 @@ p {
 }
 
 .ascii-hero__age-title {
-  color: color-mix(in srgb, #33453d, white 42%);
+  color: #d9c77d;
   font-size: 0.62rem;
   letter-spacing: 0.16em;
   line-height: 1;
@@ -987,7 +947,7 @@ p {
 .ascii-hero__age-list {
   --age-gap: clamp(22px, 3svh, 34px);
   --age-line-base-color: #33453d;
-  --age-line-complete-color: #ffffff;
+  --age-line-complete-color: #d9c77d;
   --age-scale-left: -36px;
   --age-scale-width: 28px;
   --age-scale-height: 44px;
@@ -1082,24 +1042,24 @@ p {
 }
 
 .ascii-hero__age-item.is-past {
-  color: #ffffff;
+  color: #d9c77d;
   opacity: 1;
 }
 
 .ascii-hero__age-item.is-past .ascii-hero__age-scale path {
-  fill: #ffffff;
-  stroke: #ffffff;
+  fill: #d9c77d;
+  stroke: #d9c77d;
 }
 
 .ascii-hero__age-item.is-active {
-  color: #ffffff;
+  color: #d9c77d;
   opacity: 1;
   transform: none;
 }
 
 .ascii-hero__age-item.is-active .ascii-hero__age-scale path {
-  fill: #ffffff;
-  stroke: #ffffff;
+  fill: #d9c77d;
+  stroke: #d9c77d;
 }
 
 .ascii-hero__readout {

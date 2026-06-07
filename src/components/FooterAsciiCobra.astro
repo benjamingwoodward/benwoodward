@@ -292,9 +292,12 @@ import FuzzyText from "./FuzzyText.jsx";
       if (!duration) return;
 
       const progress = getScrollProgress();
-      const time = progress * Math.max(duration - 0.04, 0);
+      const maxTime = Math.max(duration - 0.04, 0);
+      const introLead = Math.min(duration * 0.1, 0.75);
+      const time = introLead + progress * Math.max(maxTime - introLead, 0);
 
       section.style.setProperty("--footer-cobra-progress", progress.toFixed(3));
+      document.documentElement.classList.toggle("footer-cobra-complete", progress >= 0.965);
 
       if (Math.abs(video.currentTime - time) > 0.035) {
         seekTo(time);

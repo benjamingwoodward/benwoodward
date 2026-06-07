@@ -30,6 +30,19 @@ const hackathonFrames: MemoryFrame[] = [
   { src: "/hackathon-just-build.png", alt: "JustBuild hackathon logo", kind: "logo" },
   { src: "/hackathon-defhacks.png", alt: "DefHacks logo", kind: "logo" },
   { src: "/hackathon-byu-cutout.png", alt: "BYU logo", kind: "logo" },
+  { src: "/hackathon-billboard.jpg", alt: "A Redo billboard naming Benjamin as an AI hackathon winner" },
+  { src: "/hackathon-win.jpg", alt: "Benjamin after winning first place at an AI hackathon" },
+];
+
+const missionFrames: MemoryFrame[] = [
+  { src: "/mission-tampere.jpg", alt: "Benjamin by the river in Tampere, Finland during his mission" },
+  { src: "/mission-temple.jpg", alt: "Benjamin outside a temple in Finland during his mission" },
+  { src: "/mission-rollers.jpg", alt: "Benjamin rollerblading with a mission companion in Finland" },
+  { src: "/mission-reindeer.jpg", alt: "Benjamin standing with reindeer in Finland during his mission" },
+];
+
+const marathonFrames: MemoryFrame[] = [
+  { src: "/marathon.jpg", alt: "Benjamin after running the Helsinki Marathon" },
 ];
 
 const heroDispatches: HeroDispatch[] = [
@@ -57,9 +70,16 @@ const heroDispatches: HeroDispatch[] = [
     memoryFrames: hackathonFrames,
   },
   {
-    eyebrow: "Conviction",
-    age: "20",
-    text: "Left BYU to build full-time.",
+    eyebrow: "Mission",
+    age: "20-22",
+    text: "Served as an LDS (Mormon) missionary in Finland.",
+    memoryFrames: missionFrames,
+  },
+  {
+    eyebrow: "Endurance",
+    age: "22",
+    text: "Ran a marathon with no training. Finished in 3.5 hours.",
+    memoryFrames: marathonFrames,
   },
   {
     eyebrow: "Software",
@@ -74,7 +94,7 @@ const heroDispatches: HeroDispatch[] = [
   {
     eyebrow: "Redo",
     age: "22",
-    text: "Joined Redo, Utah's fastest-growing startup.",
+    text: "Left BYU to join Redo, Utah's fastest-growing startup.",
   },
   {
     eyebrow: "Operator",
@@ -83,12 +103,12 @@ const heroDispatches: HeroDispatch[] = [
   },
   {
     eyebrow: "Leverage",
-    age: "22",
+    age: "23",
     text: "Cut merchant onboarding from 1+ week to ~20 minutes.",
   },
   {
     eyebrow: "Scale",
-    age: "22",
+    age: "23",
     text: "Automated 60% of onboarding. Eight figures onboarded autonomously.",
   },
   {
@@ -104,14 +124,24 @@ const heroDispatches: HeroDispatch[] = [
 ];
 
 const memoryFrameGroups = heroDispatches
-  .map((dispatch, dispatchIndex) => ({
-    dispatchIndex,
-    label: `${dispatch.eyebrow} images`,
-    kind: (dispatch.memoryFrames ?? []).every((frame) => frame.kind === "logo")
-      ? "logo"
-      : "photo",
-    frames: dispatch.memoryFrames ?? [],
-  }))
+  .map((dispatch, dispatchIndex) => {
+    const frames = dispatch.memoryFrames ?? [];
+    const logoFrames = frames.filter((frame) => frame.kind === "logo");
+    const photoFrames = frames.filter((frame) => frame.kind !== "logo");
+
+    return {
+      dispatchIndex,
+      label: `${dispatch.eyebrow} images`,
+      kind: logoFrames.length && photoFrames.length
+        ? "mixed"
+        : logoFrames.length
+          ? "logo"
+          : "photo",
+      frames,
+      logoFrames,
+      photoFrames,
+    };
+  })
   .filter((group) => group.frames.length > 0);
 
 const scalePath =
@@ -166,7 +196,7 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
             glitchDuration: 140,
             fontSize: "1em",
             fontWeight: 400,
-            color: "#d9c77d",
+            color: "#fff",
             className: "fuzzy-text fuzzy-text--bite",
           }}
           speed={90}
@@ -214,16 +244,28 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       <div class="ascii-hero__dispatch-copy">
         {
           heroDispatches.map((dispatch, index) => (
+            /* Keep the original strings in data attributes so scroll-driven
+               encryption can mutate only the visual text. */
             <article
               class="ascii-hero__dispatch"
               data-hero-dispatch
               data-dispatch-index={index}
               style={`--dispatch-index: ${index};`}
             >
-              <p class="ascii-hero__dispatch-kicker">
+              <p
+                class="ascii-hero__dispatch-kicker"
+                data-dispatch-kicker-text={`${(index + 1).toString().padStart(2, "0")} / ${heroDispatches.length.toString().padStart(2, "0")} ${dispatch.eyebrow}`}
+                aria-label={`${(index + 1).toString().padStart(2, "0")} / ${heroDispatches.length.toString().padStart(2, "0")} ${dispatch.eyebrow}`}
+              >
                 {`${(index + 1).toString().padStart(2, "0")} / ${heroDispatches.length.toString().padStart(2, "0")} ${dispatch.eyebrow}`}
               </p>
-              <p class="ascii-hero__dispatch-text">{dispatch.text}</p>
+              <p
+                class="ascii-hero__dispatch-text"
+                data-dispatch-body-text={dispatch.text}
+                aria-label={dispatch.text}
+              >
+                {dispatch.text}
+              </p>
             </article>
           ))
         }
@@ -231,85 +273,111 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
 
       <div class="ascii-hero__memory-frames" data-memory-frames aria-label="Timeline images">
         {
-          memoryFrameGroups.map((group) => (
+          memoryFrameGroups.map((group) => {
+            const photoFrameCount = group.photoFrames.length;
+            const frameGapCap =
+              photoFrameCount >= 4 ? "20px" : photoFrameCount === 3 ? "28px" : "34px";
+            const frameGroupStyle =
+              photoFrameCount > 1
+                ? `--memory-frame-hover-gap: clamp(10px, calc((var(--dispatch-column-width) - (var(--memory-frame-width) * ${photoFrameCount})) / ${photoFrameCount - 1}), ${frameGapCap});`
+                : "--memory-frame-hover-gap: 0px;";
+
+            return (
             <div
-              class={`ascii-hero__memory-frame-group${group.kind === "logo" ? " ascii-hero__memory-frame-group--logos" : ""}`}
+              class={`ascii-hero__memory-frame-group${group.kind === "logo" ? " ascii-hero__memory-frame-group--logos" : ""}${group.kind === "mixed" ? " ascii-hero__memory-frame-group--mixed" : ""}`}
               data-memory-frame-group
               data-memory-group-kind={group.kind}
+              data-memory-frame-count={group.photoFrames.length || group.frames.length}
               data-memory-dispatch-index={group.dispatchIndex}
               aria-label={group.label}
               aria-hidden="true"
+              style={frameGroupStyle}
             >
               {
-                group.frames.map((frame, index) =>
-                  frame.kind === "logo" ? (
-                    <figure
-                      class="ascii-hero__memory-logo-item"
-                      style={`--memory-frame-index: ${index};`}
-                    >
-                      <img
-                        class="ascii-hero__memory-logo"
-                        src={frame.src}
-                        alt={frame.alt}
-                        loading="lazy"
-                      />
-                    </figure>
-                  ) : (
-                    <figure
-                      class="ascii-hero__memory-frame"
-                      data-memory-frame
-                      data-memory-frame-kind="photo"
-                      role="button"
-                      tabindex="0"
-                      aria-pressed="false"
-                      style={`--memory-frame-index: ${index};`}
-                    >
-                      <svg
-                        class="ascii-hero__memory-shield"
-                        viewBox="0 -10 64 88"
-                        preserveAspectRatio="none"
-                        aria-hidden={frame.src ? "true" : undefined}
-                        focusable="false"
-                      >
-                        <defs>
-                          <clipPath
-                            id={`memory-frame-clip-${group.dispatchIndex}-${index}`}
-                            clipPathUnits="userSpaceOnUse"
+                group.logoFrames.length > 0 && (
+                  <div class="ascii-hero__memory-logo-row">
+                    {
+                      group.logoFrames.map((frame, index) => (
+                        <figure
+                          class="ascii-hero__memory-logo-item"
+                          style={`--memory-frame-index: ${index};`}
+                        >
+                          <img
+                            class="ascii-hero__memory-logo"
+                            src={frame.src}
+                            alt={frame.alt}
+                            loading="lazy"
+                          />
+                        </figure>
+                      ))
+                    }
+                  </div>
+                )
+              }
+              {
+                group.photoFrames.length > 0 && (
+                  <div class="ascii-hero__memory-photo-row">
+                    {
+                      group.photoFrames.map((frame, index) => (
+                        <figure
+                          class="ascii-hero__memory-frame"
+                          data-memory-frame
+                          data-memory-frame-kind="photo"
+                          data-memory-frame-position={index + 1}
+                          role="button"
+                          tabindex="0"
+                          aria-pressed="false"
+                          style={`--memory-frame-index: ${index}; --memory-frame-collapsed-right: calc(var(--memory-frame-width) * ${(group.photoFrames.length - index - 1) * 0.64}); --memory-frame-expanded-right: calc((var(--memory-frame-width) + var(--memory-frame-hover-gap)) * ${group.photoFrames.length - index - 1});`}
+                        >
+                          <svg
+                            class="ascii-hero__memory-shield"
+                            viewBox="0 -10 64 88"
+                            preserveAspectRatio="none"
+                            aria-hidden={frame.src ? "true" : undefined}
+                            focusable="false"
                           >
-                            <path d={scalePath} />
-                          </clipPath>
-                        </defs>
-                        <path class="ascii-hero__memory-frame-backdrop" d={scalePath} />
-                        {
-                          frame.src ? (
-                            <image
-                              class="ascii-hero__memory-frame-image"
-                              href={frame.src}
-                              x="-1"
-                              y="-11"
-                              width="66"
-                              height="90"
-                              preserveAspectRatio="xMidYMid slice"
-                              clip-path={`url(#memory-frame-clip-${group.dispatchIndex}-${index})`}
-                            >
-                              <title>{frame.alt}</title>
-                            </image>
-                          ) : (
-                            <path
-                              class="ascii-hero__memory-frame-placeholder"
-                              d={scalePath}
-                            />
-                          )
-                        }
-                        <path class="ascii-hero__memory-frame-stroke" d={scalePath} />
-                      </svg>
-                      <figcaption class="sr-only">{frame.alt}</figcaption>
-                    </figure>
-                  )
+                            <defs>
+                              <clipPath
+                                id={`memory-frame-clip-${group.dispatchIndex}-${index}`}
+                                clipPathUnits="userSpaceOnUse"
+                              >
+                                <path d={scalePath} />
+                              </clipPath>
+                            </defs>
+                            <path class="ascii-hero__memory-frame-backdrop" d={scalePath} />
+                            {
+                              frame.src ? (
+                                <image
+                                  class="ascii-hero__memory-frame-image"
+                                  href={frame.src}
+                                  x="-1"
+                                  y="-11"
+                                  width="66"
+                                  height="90"
+                                  preserveAspectRatio="xMidYMid slice"
+                                  clip-path={`url(#memory-frame-clip-${group.dispatchIndex}-${index})`}
+                                >
+                                  <title>{frame.alt}</title>
+                                </image>
+                              ) : (
+                                <path
+                                  class="ascii-hero__memory-frame-placeholder"
+                                  d={scalePath}
+                                />
+                              )
+                            }
+                            <path class="ascii-hero__memory-frame-stroke" d={scalePath} />
+                          </svg>
+                          <figcaption class="sr-only">{frame.alt}</figcaption>
+                        </figure>
+                      ))
+                    }
+                  </div>
                 )
               }
             </div>
-          ))
+            );
+          })
         }
       </div>
     </div>
@@ -319,22 +387,6 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       data-memory-lightbox
       aria-hidden="true"
     >
-      <button
-        class="ascii-hero__memory-lightbox-nav ascii-hero__memory-lightbox-nav--prev"
-        type="button"
-        data-memory-lightbox-prev
-        aria-label="Previous image"
-      >
-        <svg
-          class="ascii-hero__memory-lightbox-nav-shape"
-          viewBox="-12 0 88 64"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path d={scalePath} transform="rotate(90 32 32)" />
-        </svg>
-      </button>
       <div
         class="ascii-hero__memory-lightbox-frame"
         data-memory-lightbox-frame
@@ -368,22 +420,6 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
         </svg>
         <span class="sr-only" data-memory-lightbox-caption>Selected childhood image</span>
       </div>
-      <button
-        class="ascii-hero__memory-lightbox-nav ascii-hero__memory-lightbox-nav--next"
-        type="button"
-        data-memory-lightbox-next
-        aria-label="Next image"
-      >
-        <svg
-          class="ascii-hero__memory-lightbox-nav-shape"
-          viewBox="-12 0 88 64"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path d={scalePath} transform="rotate(-90 32 32)" />
-        </svg>
-      </button>
     </div>
 
     <aside class="ascii-hero__age-timeline" aria-label="Age timeline">
@@ -431,6 +467,8 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
     ".:-=+*#%@";
   const fieldGlyphRamp =
     ".::---===+++***###%%%@@";
+  const encryptedTextGlyphs =
+    "01<>[]{}\\/|$#@%*+=-_";
   const luminanceFloor = 0.1;
   const foregroundBoost = 1.18;
   const introScrollShare = 0.24;
@@ -448,6 +486,49 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
     const amount = clamp((value - edge0) / (edge1 - edge0), 0, 1);
 
     return amount * amount * (3 - 2 * amount);
+  };
+
+  const getTextNoise = (index: number, salt: number) => {
+    const value =
+      Math.sin((index + 7) * 31.13 + (salt + 11) * 73.79) * 43758.5453;
+
+    return value - Math.floor(value);
+  };
+
+  const getDecryptRank = (index: number, length: number, salt: number) => {
+    const sequenceProgress = length <= 1 ? 0 : index / (length - 1);
+    const drift = getTextNoise(index, salt) * 0.24;
+
+    return clamp(sequenceProgress * 0.84 + drift, 0, 1);
+  };
+
+  const renderEncryptedText = (
+    text: string,
+    decryptProgress: number,
+    salt: number,
+    phase: number,
+  ) => {
+    const visibleCharacters = text.split("").filter((char) => char !== " ");
+    const visibleLength = Math.max(visibleCharacters.length, 1);
+    let visibleIndex = 0;
+
+    return text
+      .split("")
+      .map((char, index) => {
+        if (char === " ") return char;
+
+        const rank = getDecryptRank(visibleIndex, visibleLength, salt);
+        visibleIndex += 1;
+
+        if (decryptProgress >= rank) return char;
+
+        const glyphIndex = Math.floor(
+          getTextNoise(index + phase * 17, salt + phase) * encryptedTextGlyphs.length,
+        );
+
+        return encryptedTextGlyphs[glyphIndex] ?? encryptedTextGlyphs[0];
+      })
+      .join("");
   };
 
   const mixChannel = (from: number, to: number, amount: number) =>
@@ -482,11 +563,21 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       section.querySelector<SVGImageElement>("[data-memory-lightbox-image]");
     const memoryLightboxCaption =
       section.querySelector<HTMLElement>("[data-memory-lightbox-caption]");
-    const memoryLightboxPrev =
-      section.querySelector<HTMLButtonElement>("[data-memory-lightbox-prev]");
-    const memoryLightboxNext =
-      section.querySelector<HTMLButtonElement>("[data-memory-lightbox-next]");
     const context = canvas?.getContext("2d");
+    const dispatchTextTargets = dispatches.map((dispatch, index) => {
+      const kicker =
+        dispatch.querySelector<HTMLElement>("[data-dispatch-kicker-text]");
+      const body =
+        dispatch.querySelector<HTMLElement>("[data-dispatch-body-text]");
+
+      return {
+        index,
+        kicker,
+        body,
+        kickerText: kicker?.dataset.dispatchKickerText ?? "",
+        bodyText: body?.dataset.dispatchBodyText ?? "",
+      };
+    });
 
     if (!video || !canvas || !output || !readout || !stage || !context) {
       return;
@@ -502,11 +593,38 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
     let currentIntroProgress = 0;
     let videoDrawRect = { x: 0, y: 0, width: 0, height: 0 };
     let selectedMemoryFrame: HTMLElement | null = null;
-    let selectedMemoryIndex = -1;
     let activeMemoryGroup: HTMLElement | null = null;
 
     const setOutput = (text: string) => {
       output.textContent = text;
+    };
+
+    const setDispatchText = (
+      target: (typeof dispatchTextTargets)[number],
+      decryptProgress: number,
+      phase: number,
+    ) => {
+      const resolvedProgress = clamp(decryptProgress, 0, 1);
+      const kickerText = renderEncryptedText(
+        target.kickerText,
+        resolvedProgress,
+        target.index * 3 + 1,
+        phase,
+      );
+      const bodyText = renderEncryptedText(
+        target.bodyText,
+        resolvedProgress,
+        target.index * 7 + 5,
+        phase,
+      );
+
+      if (target.kicker && target.kicker.textContent !== kickerText) {
+        target.kicker.textContent = kickerText;
+      }
+
+      if (target.body && target.body.textContent !== bodyText) {
+        target.body.textContent = bodyText;
+      }
     };
 
     const getFieldNoise = (x: number, y: number, salt: number) => {
@@ -518,7 +636,6 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
 
     const clearMemorySelection = () => {
       selectedMemoryFrame = null;
-      selectedMemoryIndex = -1;
       memoryFrameGroup?.classList.remove("has-selected");
       memoryFrameGroups.forEach((group) => group.classList.remove("has-selected"));
       memoryLightbox?.classList.remove("is-active");
@@ -550,7 +667,6 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       }
 
       selectedMemoryFrame = frame;
-      selectedMemoryIndex = nextIndex;
       memoryFrameGroup?.classList.add("has-selected");
       memoryFrameGroups.forEach((group) => {
         group.classList.toggle("has-selected", group.contains(frame));
@@ -589,18 +705,6 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       memoryLightbox?.setAttribute("aria-hidden", "false");
     };
 
-    const moveMemorySelection = (direction: 1 | -1) => {
-      const activeItems = getActiveMemoryFrameItems();
-
-      if (!activeItems.length) return;
-
-      const currentIndex = selectedMemoryIndex >= 0 ? selectedMemoryIndex : 0;
-      const nextIndex =
-        (currentIndex + direction + activeItems.length) % activeItems.length;
-
-      selectMemoryFrame(activeItems[nextIndex]);
-    };
-
     memoryFrameItems.forEach((frame) => {
       frame.addEventListener("click", (event) => {
         event.stopPropagation();
@@ -634,28 +738,6 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       if (event.key === "Escape") {
         clearMemorySelection();
       }
-
-      if (!selectedMemoryFrame) return;
-
-      if (event.key === "ArrowLeft") {
-        event.preventDefault();
-        moveMemorySelection(-1);
-      }
-
-      if (event.key === "ArrowRight") {
-        event.preventDefault();
-        moveMemorySelection(1);
-      }
-    });
-
-    memoryLightboxPrev?.addEventListener("click", (event) => {
-      event.stopPropagation();
-      moveMemorySelection(-1);
-    });
-
-    memoryLightboxNext?.addEventListener("click", (event) => {
-      event.stopPropagation();
-      moveMemorySelection(1);
     });
 
     const updateDispatches = (progress: number) => {
@@ -688,6 +770,7 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
         { content: 0 },
         { content: 0 },
       ];
+      const encryptionPhase = Math.floor(rawDispatchProgress * dispatches.length * 18);
 
       section.style.setProperty("--active-dispatch", `${activeIndex}`);
       section.style.setProperty("--age-progress", rawDispatchProgress.toFixed(3));
@@ -723,15 +806,25 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
         const isStacked = hasStarted && stackIndex > 0 && stackIndex <= stackDepth;
         const isVisible = isActive || isStacked;
         const state = stackStates[stackIndex] || stackStates[stackStates.length - 1];
-        const revealStart = 0.14 + Math.max(stackIndex - 1, 0) * 0.05;
-        const revealEnd = 0.58 + Math.max(stackIndex - 1, 0) * 0.05;
-        const stackReveal = stackIndex <= 0
-          ? 1
-          : smoothstep(revealStart, revealEnd, segmentProgress);
+        const stackReveal = (() => {
+          if (stackIndex <= 1) return 1;
+
+          const revealStart = Math.max(stackIndex - 2, 0) * 0.08;
+          const revealEnd = 0.32 + Math.max(stackIndex - 2, 0) * 0.08;
+
+          return smoothstep(revealStart, revealEnd, segmentProgress);
+        })();
         const cardOpacity = isVisible ? columnOpacity * stackReveal : 0;
         const contentOpacity = isVisible
           ? state.content * stackReveal
           : 0;
+        const textDecryptProgress = (() => {
+          if (index < activeIndex) return 1;
+          if (!isVisible || stackIndex !== 0) return 0;
+
+          return smoothstep(0.02, 0.22, segmentProgress);
+        })();
+        const dispatchTextTarget = dispatchTextTargets[index];
 
         dispatch.classList.toggle("is-active", isActive);
         dispatch.classList.toggle("is-stacked", isStacked);
@@ -742,6 +835,15 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
         dispatch.style.setProperty("--dispatch-y", "0px");
         dispatch.style.setProperty("--dispatch-content-opacity", contentOpacity.toFixed(3));
         dispatch.style.setProperty("--dispatch-progress", isActive ? segmentProgress.toFixed(3) : "0");
+        dispatch.style.setProperty("--dispatch-decrypt-progress", textDecryptProgress.toFixed(3));
+
+        if (dispatchTextTarget) {
+          setDispatchText(
+            dispatchTextTarget,
+            textDecryptProgress,
+            stackIndex === 0 && textDecryptProgress < 1 ? encryptionPhase : index * 13,
+          );
+        }
       });
 
       ageItems.forEach((item, index) => {
