@@ -49,7 +49,7 @@ import FuzzyText from "./FuzzyText.jsx";
     src="/footer-cobra.mp4"
     muted
     playsinline
-    preload="auto"
+    preload="none"
   ></video>
   <canvas data-footer-ascii-canvas></canvas>
 </section>
@@ -71,6 +71,8 @@ import FuzzyText from "./FuzzyText.jsx";
 
     if (!video || !canvas || !output || !frame || !context) return;
 
+    const compactMediaQuery = window.matchMedia("(max-width: 680px)");
+    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     let duration = 0;
     let pendingTime = 0;
     let isSeeking = false;
@@ -89,10 +91,19 @@ import FuzzyText from "./FuzzyText.jsx";
       const sourceWidth = video.videoWidth || Math.round(sourceHeight * 1.28);
       const lineHeightRatio = 0.84;
       const cellWidthRatio = 0.6;
-      const rows = Math.round(clamp(frameHeight / 6.3, 88, 136));
+      const isCompactRender = compactMediaQuery.matches;
+      const rows = Math.round(
+        isCompactRender
+          ? clamp(frameHeight / 8.1, 70, 108)
+          : clamp(frameHeight / 6.3, 88, 136),
+      );
       const fontSize = frameHeight / (rows * lineHeightRatio);
       const fullWidthColumns = Math.ceil(frameWidth / (fontSize * cellWidthRatio)) + 4;
-      const columns = Math.round(clamp(fullWidthColumns, 82, 280));
+      const columns = Math.round(
+        isCompactRender
+          ? clamp(fullWidthColumns, 60, 190)
+          : clamp(fullWidthColumns, 82, 280),
+      );
 
       canvas.width = columns;
       canvas.height = rows;
@@ -316,17 +327,20 @@ import FuzzyText from "./FuzzyText.jsx";
     };
 
     const startIdleTexture = () => {
-      if (idleTextureInterval || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (idleTextureInterval || reducedMotionQuery.matches) {
         return;
       }
 
+      const idleDelay = compactMediaQuery.matches ? 620 : 360;
+      const idleInterval = compactMediaQuery.matches ? 960 : 620;
+
       idleTextureInterval = window.setInterval(() => {
         if (document.hidden || isSeeking || !duration) return;
-        if (performance.now() - lastMotionAt < 360) return;
+        if (performance.now() - lastMotionAt < idleDelay) return;
 
         texturePhase += 1;
         renderIdleTexture();
-      }, 620);
+      }, idleInterval);
     };
 
     const initialize = () => {
@@ -360,5 +374,29 @@ import FuzzyText from "./FuzzyText.jsx";
       queueScrollSync();
     });
     window.addEventListener("scroll", queueScrollSync, { passive: true });
+
+    const requestVideoLoad = () => {
+      if (duration || video.readyState >= 1) return;
+
+      video.load();
+    };
+
+    if (video.readyState >= 1) {
+      initialize();
+    } else if ("IntersectionObserver" in window) {
+      const videoObserver = new IntersectionObserver(
+        (entries) => {
+          if (!entries.some((entry) => entry.isIntersecting)) return;
+
+          requestVideoLoad();
+          videoObserver.disconnect();
+        },
+        { rootMargin: "1200px 0px" },
+      );
+
+      videoObserver.observe(section);
+    } else {
+      requestVideoLoad();
+    }
   });
 </script>

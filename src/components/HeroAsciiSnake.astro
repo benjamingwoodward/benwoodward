@@ -4,7 +4,10 @@ import DecryptedText from "./DecryptedText.jsx";
 type MemoryFrame = {
   src: string;
   alt: string;
-  kind?: "photo" | "logo";
+  kind?: "photo" | "logo" | "video";
+  enterSrc?: string;
+  exitSrc?: string;
+  aspectRatio?: string;
 };
 
 type HeroDispatch = {
@@ -43,6 +46,17 @@ const missionFrames: MemoryFrame[] = [
 
 const marathonFrames: MemoryFrame[] = [
   { src: "/marathon.jpg", alt: "Benjamin after running the Helsinki Marathon" },
+];
+
+const waterQualityFrames: MemoryFrame[] = [
+  {
+    src: "/pureflow-enter.webm",
+    enterSrc: "/pureflow-enter.webm",
+    exitSrc: "/pureflow-exit.webm",
+    alt: "Pureflow water-quality software landing page demo",
+    kind: "video",
+    aspectRatio: "1 / 1",
+  },
 ];
 
 const heroDispatches: HeroDispatch[] = [
@@ -85,6 +99,7 @@ const heroDispatches: HeroDispatch[] = [
     eyebrow: "Software",
     age: "22",
     text: "Developed and sold water-quality software in a six-figure exit.",
+    memoryFrames: waterQualityFrames,
   },
   {
     eyebrow: "Outbound",
@@ -127,18 +142,22 @@ const memoryFrameGroups = heroDispatches
   .map((dispatch, dispatchIndex) => {
     const frames = dispatch.memoryFrames ?? [];
     const logoFrames = frames.filter((frame) => frame.kind === "logo");
-    const photoFrames = frames.filter((frame) => frame.kind !== "logo");
+    const videoFrames = frames.filter((frame) => frame.kind === "video");
+    const photoFrames = frames.filter((frame) => frame.kind !== "logo" && frame.kind !== "video");
 
     return {
       dispatchIndex,
       label: `${dispatch.eyebrow} images`,
-      kind: logoFrames.length && photoFrames.length
+      kind: videoFrames.length
+        ? "video"
+        : logoFrames.length && photoFrames.length
         ? "mixed"
         : logoFrames.length
           ? "logo"
           : "photo",
       frames,
       logoFrames,
+      videoFrames,
       photoFrames,
     };
   })
@@ -247,11 +266,16 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
             /* Keep the original strings in data attributes so scroll-driven
                encryption can mutate only the visual text. */
             <article
-              class="ascii-hero__dispatch"
+              class={`ascii-hero__dispatch${dispatch.memoryFrames?.some((frame) => frame.kind === "video") ? " ascii-hero__dispatch--with-proof-video" : ""}`}
               data-hero-dispatch
               data-dispatch-index={index}
+              data-dispatch-scroll-weight={dispatch.memoryFrames?.some((frame) => frame.kind === "video") ? "2.75" : "1"}
               style={`--dispatch-index: ${index};`}
             >
+              <p class="ascii-hero__mobile-progress">
+                {`AGE ${dispatch.age} / ${(index + 1).toString().padStart(2, "0")} OF ${heroDispatches.length.toString().padStart(2, "0")}`}
+              </p>
+              <p class="ascii-hero__mobile-title">{dispatch.eyebrow}</p>
               <p
                 class="ascii-hero__dispatch-kicker"
                 data-dispatch-kicker-text={`${(index + 1).toString().padStart(2, "0")} / ${heroDispatches.length.toString().padStart(2, "0")} ${dispatch.eyebrow}`}
@@ -266,6 +290,131 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
               >
                 {dispatch.text}
               </p>
+              {
+                dispatch.memoryFrames && (
+                  <div
+                    class="ascii-hero__mobile-memory"
+                    data-memory-frame-group
+                    data-memory-group-kind={dispatch.memoryFrames.some((frame) => frame.kind === "video") ? "video" : "photo"}
+                    data-memory-group-surface="mobile"
+                    data-memory-frame-count={dispatch.memoryFrames.filter((frame) => frame.kind !== "logo" && frame.kind !== "video").length}
+                    data-memory-dispatch-index={index}
+                    aria-label={`${dispatch.eyebrow} images`}
+                    aria-hidden="true"
+                  >
+                    {
+                      dispatch.memoryFrames.some((frame) => frame.kind === "logo") && (
+                        <div class="ascii-hero__mobile-logo-row" aria-hidden="true">
+                          {
+                            dispatch.memoryFrames
+                              .filter((frame) => frame.kind === "logo")
+                              .map((frame) => (
+                                <img
+                                  class="ascii-hero__mobile-logo"
+                                  src={frame.src}
+                                  alt=""
+                                  loading="lazy"
+                                />
+                              ))
+                          }
+                        </div>
+                      )
+                    }
+                      {
+                        dispatch.memoryFrames.filter((frame) => frame.kind !== "logo" && frame.kind !== "video").length > 0 && (
+                          <div
+                            class="ascii-hero__mobile-memory-row"
+                            data-mobile-memory-row
+                            data-mobile-memory-count={dispatch.memoryFrames.filter((frame) => frame.kind !== "logo" && frame.kind !== "video").length}
+                          >
+                            {
+                              dispatch.memoryFrames
+                                .filter((frame) => frame.kind !== "logo" && frame.kind !== "video")
+                                .map((frame, frameIndex) => (
+                                  <figure
+                                    class="ascii-hero__memory-frame ascii-hero__mobile-memory-frame"
+                                    data-memory-frame
+                                    data-memory-frame-kind="photo"
+                                    data-memory-frame-position={frameIndex + 1}
+                                    role="button"
+                                    tabindex="0"
+                                    aria-pressed="false"
+                                    style={`--memory-frame-index: ${frameIndex};`}
+                                  >
+                                    <svg
+                                      class="ascii-hero__memory-shield"
+                                      viewBox="0 -10 64 88"
+                                      preserveAspectRatio="none"
+                                      aria-hidden="true"
+                                      focusable="false"
+                                    >
+                                      <defs>
+                                        <clipPath
+                                          id={`mobile-memory-frame-clip-${index}-${frameIndex}`}
+                                          clipPathUnits="userSpaceOnUse"
+                                        >
+                                          <path d={scalePath} />
+                                        </clipPath>
+                                      </defs>
+                                      <path class="ascii-hero__memory-frame-backdrop" d={scalePath} />
+                                    <image
+                                      class="ascii-hero__memory-frame-image"
+                                      href={frame.src}
+                                      x="-1"
+                                      y="-11"
+                                      width="66"
+                                      height="90"
+                                      preserveAspectRatio="xMidYMid slice"
+                                      clip-path={`url(#mobile-memory-frame-clip-${index}-${frameIndex})`}
+                                    >
+                                      <title>{frame.alt}</title>
+                                    </image>
+                                      <path class="ascii-hero__memory-frame-stroke" d={scalePath} />
+                                    </svg>
+                                    <figcaption class="sr-only">{frame.alt}</figcaption>
+                                  </figure>
+                                ))
+                            }
+                          </div>
+                        )
+                      }
+                    {
+                      dispatch.memoryFrames
+                        .filter((frame) => frame.kind === "video")
+                        .map((frame) => (
+                          <figure
+                            class="ascii-hero__mobile-proof-video-card"
+                            data-dispatch-proof-card
+                            data-dispatch-video-index={index}
+                            data-dispatch-enter-src={frame.enterSrc ?? frame.src}
+                            data-dispatch-exit-src={frame.exitSrc ?? frame.src}
+                            style={`--proof-video-aspect: ${frame.aspectRatio ?? "16 / 9"};`}
+                          >
+                            <video
+                              class="ascii-hero__proof-video ascii-hero__proof-video--enter"
+                              data-dispatch-proof-enter
+                              src={frame.enterSrc ?? frame.src}
+                              muted
+                              playsinline
+                              preload="auto"
+                              aria-label={`${frame.alt} intro`}
+                            />
+                            <video
+                              class="ascii-hero__proof-video ascii-hero__proof-video--exit"
+                              data-dispatch-proof-exit
+                              src={frame.exitSrc ?? frame.src}
+                              muted
+                              playsinline
+                              preload="auto"
+                              aria-label={`${frame.alt} outro`}
+                            />
+                            <figcaption class="sr-only">{frame.alt}</figcaption>
+                          </figure>
+                        ))
+                      }
+                  </div>
+                )
+              }
             </article>
           ))
         }
@@ -284,10 +433,10 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
 
             return (
             <div
-              class={`ascii-hero__memory-frame-group${group.kind === "logo" ? " ascii-hero__memory-frame-group--logos" : ""}${group.kind === "mixed" ? " ascii-hero__memory-frame-group--mixed" : ""}`}
+              class={`ascii-hero__memory-frame-group${group.kind === "logo" ? " ascii-hero__memory-frame-group--logos" : ""}${group.kind === "mixed" ? " ascii-hero__memory-frame-group--mixed" : ""}${group.kind === "video" ? " ascii-hero__memory-frame-group--video" : ""}`}
               data-memory-frame-group
               data-memory-group-kind={group.kind}
-              data-memory-frame-count={group.photoFrames.length || group.frames.length}
+              data-memory-frame-count={group.photoFrames.length || group.videoFrames.length || group.frames.length}
               data-memory-dispatch-index={group.dispatchIndex}
               aria-label={group.label}
               aria-hidden="true"
@@ -368,6 +517,44 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
                             }
                             <path class="ascii-hero__memory-frame-stroke" d={scalePath} />
                           </svg>
+                          <figcaption class="sr-only">{frame.alt}</figcaption>
+                        </figure>
+                      ))
+                    }
+                  </div>
+                )
+              }
+              {
+                group.videoFrames.length > 0 && (
+                  <div class="ascii-hero__memory-video-row">
+                    {
+                      group.videoFrames.map((frame) => (
+                        <figure
+                          class="ascii-hero__memory-video-card"
+                          data-dispatch-proof-card
+                          data-dispatch-video-index={group.dispatchIndex}
+                          data-dispatch-enter-src={frame.enterSrc ?? frame.src}
+                          data-dispatch-exit-src={frame.exitSrc ?? frame.src}
+                          style={`--proof-video-aspect: ${frame.aspectRatio ?? "16 / 9"};`}
+                        >
+                          <video
+                            class="ascii-hero__proof-video ascii-hero__proof-video--enter"
+                            data-dispatch-proof-enter
+                            src={frame.enterSrc ?? frame.src}
+                            muted
+                            playsinline
+                            preload="auto"
+                            aria-label={`${frame.alt} intro`}
+                          />
+                          <video
+                            class="ascii-hero__proof-video ascii-hero__proof-video--exit"
+                            data-dispatch-proof-exit
+                            src={frame.exitSrc ?? frame.src}
+                            muted
+                            playsinline
+                            preload="auto"
+                            aria-label={`${frame.alt} outro`}
+                          />
                           <figcaption class="sr-only">{frame.alt}</figcaption>
                         </figure>
                       ))
@@ -547,14 +734,21 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
     const stage = section.querySelector<HTMLElement>(".ascii-hero__sticky");
     const dispatches =
       Array.from(section.querySelectorAll<HTMLElement>("[data-hero-dispatch]"));
+    const dispatchScrollWeights = dispatches.map((dispatch) =>
+      Math.max(Number(dispatch.dataset.dispatchScrollWeight) || 1, 0.25),
+    );
+    const totalDispatchScrollWeight =
+      dispatchScrollWeights.reduce((total, weight) => total + weight, 0) || dispatches.length || 1;
     const ageItems =
       Array.from(section.querySelectorAll<HTMLElement>("[data-hero-age]"));
-    const memoryFrameGroup =
-      section.querySelector<HTMLElement>("[data-memory-frames]");
+    const memoryFrameContainers =
+      Array.from(section.querySelectorAll<HTMLElement>("[data-memory-frames]"));
     const memoryFrameGroups =
       Array.from(section.querySelectorAll<HTMLElement>("[data-memory-frame-group]"));
     const memoryFrameItems =
       Array.from(section.querySelectorAll<HTMLElement>("[data-memory-frame]"));
+    const dispatchProofCards =
+      Array.from(section.querySelectorAll<HTMLElement>("[data-dispatch-proof-card]"));
     const memoryLightbox =
       section.querySelector<HTMLElement>("[data-memory-lightbox]");
     const memoryLightboxFrame =
@@ -583,6 +777,8 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       return;
     }
 
+    const compactMediaQuery = window.matchMedia("(max-width: 680px)");
+    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     let duration = 0;
     let pendingTime = 0;
     let isSeeking = false;
@@ -593,7 +789,11 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
     let currentIntroProgress = 0;
     let videoDrawRect = { x: 0, y: 0, width: 0, height: 0 };
     let selectedMemoryFrame: HTMLElement | null = null;
-    let activeMemoryGroup: HTMLElement | null = null;
+    let activeMemoryGroups: HTMLElement[] = [];
+    const proofVideoStates = new WeakMap<HTMLElement, string>();
+    type ProofSegment = "enter" | "exit";
+    const proofVideoActiveStates = new WeakMap<HTMLElement, boolean>();
+    const proofVideoQueues = new WeakMap<HTMLElement, ProofSegment[]>();
 
     const setOutput = (text: string) => {
       output.textContent = text;
@@ -636,7 +836,7 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
 
     const clearMemorySelection = () => {
       selectedMemoryFrame = null;
-      memoryFrameGroup?.classList.remove("has-selected");
+      memoryFrameContainers.forEach((container) => container.classList.remove("has-selected"));
       memoryFrameGroups.forEach((group) => group.classList.remove("has-selected"));
       memoryLightbox?.classList.remove("is-active");
       memoryLightbox?.classList.remove("is-logo");
@@ -647,19 +847,23 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       });
     };
 
-    const getActiveMemoryFrameItems = () => {
-      const group = activeMemoryGroup;
+    const getFrameGroup = (frame: HTMLElement) =>
+      frame.closest("[data-memory-frame-group]") as HTMLElement | null;
 
-      if (!group) return [];
+    const getActiveMemoryFrameItems = (frame: HTMLElement) => {
+      const group = getFrameGroup(frame);
+
+      if (!group || !group.classList.contains("is-active")) return [];
 
       return Array.from(group.querySelectorAll<HTMLElement>("[data-memory-frame]"));
     };
 
     const selectMemoryFrame = (frame: HTMLElement) => {
-      const activeItems = getActiveMemoryFrameItems();
+      const frameGroup = getFrameGroup(frame);
+      const activeItems = getActiveMemoryFrameItems(frame);
       const nextIndex = activeItems.indexOf(frame);
 
-      if (nextIndex < 0) return;
+      if (!frameGroup || nextIndex < 0) return;
 
       if (selectedMemoryFrame === frame) {
         clearMemorySelection();
@@ -667,9 +871,9 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       }
 
       selectedMemoryFrame = frame;
-      memoryFrameGroup?.classList.add("has-selected");
+      memoryFrameContainers.forEach((container) => container.classList.add("has-selected"));
       memoryFrameGroups.forEach((group) => {
-        group.classList.toggle("has-selected", group.contains(frame));
+        group.classList.toggle("has-selected", group === frameGroup);
       });
       memoryFrameItems.forEach((item) => {
         const isSelected = item === frame;
@@ -721,7 +925,9 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
 
     document.addEventListener("click", (event) => {
       if (!selectedMemoryFrame) return;
-      if (memoryFrameGroup?.contains(event.target as Node)) return;
+      if (memoryFrameContainers.some((container) => container.contains(event.target as Node))) {
+        return;
+      }
 
       clearMemorySelection();
     });
@@ -740,6 +946,166 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       }
     });
 
+    const setProofVideoState = (card: HTMLElement, state: string) => {
+      proofVideoStates.set(card, state);
+      card.dataset.proofVideoState = state;
+      card.classList.toggle("is-entering", state === "entering");
+      card.classList.toggle("is-held", state === "held");
+      card.classList.toggle("is-exiting", state === "exiting");
+      card.classList.toggle("is-exited", state === "exited");
+    };
+
+    const getCurrentProofSegment = (card: HTMLElement): ProofSegment | null => {
+      const state = proofVideoStates.get(card) ?? "idle";
+
+      if (state === "entering") return "enter";
+      if (state === "exiting") return "exit";
+      return null;
+    };
+
+    const isProofVideoVisible = (card: HTMLElement) => {
+      const state = proofVideoStates.get(card) ?? "idle";
+
+      return (
+        Boolean(proofVideoActiveStates.get(card)) ||
+        state === "entering" ||
+        state === "held" ||
+        state === "exiting"
+      );
+    };
+
+    const syncProofCardClass = (card: HTMLElement) => {
+      card.classList.toggle("is-active", isProofVideoVisible(card));
+    };
+
+    const getProofVideo = (card: HTMLElement, segment: ProofSegment) =>
+      card.querySelector<HTMLVideoElement>(
+        segment === "enter" ? "[data-dispatch-proof-enter]" : "[data-dispatch-proof-exit]",
+      );
+
+    const getProofVideos = (card: HTMLElement) =>
+      [
+        card.querySelector<HTMLVideoElement>("[data-dispatch-proof-enter]"),
+        card.querySelector<HTMLVideoElement>("[data-dispatch-proof-exit]"),
+      ].filter(Boolean) as HTMLVideoElement[];
+
+    const setProofVideoTime = (video: HTMLVideoElement, time: number) => {
+      const applyTime = () => {
+        try {
+          video.currentTime = Math.max(0, time);
+        } catch {
+          // Some browsers reject seeks before metadata is settled.
+        }
+      };
+
+      if (video.readyState) {
+        applyTime();
+      } else {
+        video.addEventListener("loadedmetadata", applyTime, { once: true });
+      }
+    };
+
+    const resetProofCard = (card: HTMLElement) => {
+      proofVideoActiveStates.set(card, false);
+      proofVideoQueues.delete(card);
+
+      getProofVideos(card).forEach((video) => {
+        video.pause();
+        setProofVideoTime(video, 0);
+      });
+
+      setProofVideoState(card, "idle");
+      syncProofCardClass(card);
+    };
+
+    const enqueueProofSegment = (card: HTMLElement, segment: ProofSegment) => {
+      const queue = proofVideoQueues.get(card) ?? [];
+      const lastQueued = queue[queue.length - 1];
+      const currentSegment = getCurrentProofSegment(card);
+      const lastSegment = lastQueued ?? currentSegment;
+
+      if (lastSegment === segment) return;
+
+      queue.push(segment);
+      proofVideoQueues.set(card, queue);
+    };
+
+    const takeQueuedProofSegment = (card: HTMLElement) => {
+      const queue = proofVideoQueues.get(card);
+      const nextSegment = queue?.shift();
+
+      if (!queue?.length) {
+        proofVideoQueues.delete(card);
+      }
+
+      return nextSegment;
+    };
+
+    const playProofSegment = (card: HTMLElement, segment: ProofSegment) => {
+      const video = getProofVideo(card, segment);
+      if (!video) return;
+
+      const state = segment === "enter" ? "entering" : "exiting";
+
+      video.pause();
+
+      const beginPlayback = () => {
+        setProofVideoTime(video, 0);
+        requestAnimationFrame(() => {
+          setProofVideoState(card, state);
+          syncProofCardClass(card);
+          video.play().catch(() => undefined);
+        });
+      };
+
+      if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        beginPlayback();
+      } else {
+        video.addEventListener("loadeddata", beginPlayback, { once: true });
+      }
+    };
+
+    const requestProofSegment = (card: HTMLElement, segment: ProofSegment) => {
+      const currentSegment = getCurrentProofSegment(card);
+
+      if (currentSegment) {
+        enqueueProofSegment(card, segment);
+        return;
+      }
+
+      playProofSegment(card, segment);
+    };
+
+    dispatchProofCards.forEach((card) => {
+      setProofVideoState(card, "idle");
+      proofVideoActiveStates.set(card, false);
+
+      (["enter", "exit"] as ProofSegment[]).forEach((segment) => {
+        const video = getProofVideo(card, segment);
+
+        video?.load();
+
+        video?.addEventListener("ended", () => {
+          const state = proofVideoStates.get(card);
+          const nextSegment = takeQueuedProofSegment(card);
+
+          if (segment === "enter" && state === "entering") {
+            setProofVideoState(card, "held");
+          }
+
+          if (segment === "exit" && state === "exiting") {
+            setProofVideoState(card, "exited");
+          }
+
+          syncProofCardClass(card);
+
+          if (nextSegment) {
+            requestAnimationFrame(() => requestProofSegment(card, nextSegment));
+          }
+        });
+      });
+    });
+
     const updateDispatches = (progress: number) => {
       if (!dispatches.length) return;
 
@@ -749,19 +1115,39 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
         1,
       );
       const hasStarted = progress >= dispatchStartShare;
-      const activeIndex = hasStarted
-        ? Math.min(Math.floor(rawDispatchProgress * dispatches.length), dispatches.length - 1)
-        : -1;
+      const weightedDispatchProgress = rawDispatchProgress * totalDispatchScrollWeight;
+      let accumulatedDispatchWeight = 0;
+      let resolvedActiveIndex = -1;
+      let resolvedSegmentProgress = 0;
+
+      if (hasStarted) {
+        for (let index = 0; index < dispatches.length; index += 1) {
+          const weight = dispatchScrollWeights[index] || 1;
+          const isLast = index === dispatches.length - 1;
+
+          if (weightedDispatchProgress <= accumulatedDispatchWeight + weight || isLast) {
+            resolvedActiveIndex = index;
+            resolvedSegmentProgress = clamp(
+              (weightedDispatchProgress - accumulatedDispatchWeight) / weight,
+              0,
+              1,
+            );
+            break;
+          }
+
+          accumulatedDispatchWeight += weight;
+        }
+      }
+
+      const activeIndex = resolvedActiveIndex;
       const activeAgeIndex = Math.max(activeIndex, 0);
-      const segmentProgress = activeIndex >= 0
-        ? rawDispatchProgress * dispatches.length - activeIndex
-        : 0;
+      const segmentProgress = activeIndex >= 0 ? resolvedSegmentProgress : 0;
       const columnIntroOpacity = smoothstep(0, 0.025, rawDispatchProgress);
       const columnExitOpacity = 1 - smoothstep(0.968, 1, rawDispatchProgress);
       const columnOpacity = hasStarted
         ? clamp(columnIntroOpacity * columnExitOpacity, 0, 1)
         : 0;
-      const isCompactStack = window.matchMedia("(max-width: 680px)").matches;
+      const isCompactStack = compactMediaQuery.matches;
       const stackDepth = isCompactStack ? 0 : 4;
       const stackStates = [
         { content: 1 },
@@ -770,32 +1156,105 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
         { content: 0 },
         { content: 0 },
       ];
-      const encryptionPhase = Math.floor(rawDispatchProgress * dispatches.length * 18);
+      const encryptionPhase = Math.floor(weightedDispatchProgress * 18);
 
       section.style.setProperty("--active-dispatch", `${activeIndex}`);
       section.style.setProperty("--age-progress", rawDispatchProgress.toFixed(3));
       section.style.setProperty("--dispatch-grid-opacity", columnOpacity.toFixed(3));
-      const nextActiveMemoryGroup = memoryFrameGroups.find((group) =>
+      const nextActiveMemoryGroups = memoryFrameGroups.filter((group) =>
         Number(group.dataset.memoryDispatchIndex) === activeIndex
-      ) ?? null;
-      const memoryFramesVisible = Boolean(nextActiveMemoryGroup) && columnOpacity > 0.08;
+      );
+      const baseMemoryFramesVisible = nextActiveMemoryGroups.length > 0 && columnOpacity > 0.08;
+
+      dispatchProofCards.forEach((card) => {
+        const videoDispatchIndex = Number(card.dataset.dispatchVideoIndex);
+        const isActiveVideo = baseMemoryFramesVisible && videoDispatchIndex === activeIndex;
+        const wasActiveVideo = Boolean(proofVideoActiveStates.get(card));
+        const state = proofVideoStates.get(card) ?? "idle";
+
+        if (reducedMotionQuery.matches) {
+          if (isActiveVideo && state !== "held") {
+            const video = getProofVideo(card, "enter");
+
+            if (video) {
+              getProofVideo(card, "exit")?.pause();
+
+              const seekToEnd = () => {
+                const endTime = Number.isFinite(video.duration) && video.duration > 0
+                  ? Math.max(video.duration - 0.03, 0)
+                  : 0;
+
+                setProofVideoTime(video, endTime);
+              };
+
+              if (video.readyState) {
+                seekToEnd();
+              } else {
+                video.addEventListener("loadedmetadata", seekToEnd, { once: true });
+              }
+            }
+
+            proofVideoActiveStates.set(card, true);
+            setProofVideoState(card, "held");
+            syncProofCardClass(card);
+          }
+
+          if (!isActiveVideo && wasActiveVideo) {
+            resetProofCard(card);
+          }
+          return;
+        }
+
+        if (isActiveVideo && !wasActiveVideo) {
+          proofVideoActiveStates.set(card, true);
+          requestProofSegment(card, "enter");
+        }
+
+        if (!isActiveVideo && wasActiveVideo) {
+          proofVideoActiveStates.set(card, false);
+          requestProofSegment(card, "exit");
+        }
+
+        syncProofCardClass(card);
+      });
+
+      const proofVisibleDispatchIndexes = new Set(
+        dispatchProofCards
+          .filter((card) => isProofVideoVisible(card))
+          .map((card) => Number(card.dataset.dispatchVideoIndex)),
+      );
+      const proofFramesVisible = proofVisibleDispatchIndexes.size > 0;
+      const memoryFramesVisible = baseMemoryFramesVisible || proofFramesVisible;
+      const memoryFramesOpacity = proofFramesVisible
+        ? Math.max(columnOpacity, 1)
+        : baseMemoryFramesVisible
+          ? columnOpacity
+          : 0;
 
       section.style.setProperty(
         "--memory-frames-opacity",
-        memoryFramesVisible ? columnOpacity.toFixed(3) : "0",
+        memoryFramesVisible ? memoryFramesOpacity.toFixed(3) : "0",
       );
-      memoryFrameGroup?.classList.toggle("is-visible", memoryFramesVisible);
+      memoryFrameContainers.forEach((container) => {
+        container.classList.toggle("is-visible", memoryFramesVisible);
+      });
       memoryFrameGroups.forEach((group) => {
-        const isActiveGroup = memoryFramesVisible && group === nextActiveMemoryGroup;
+        const groupDispatchIndex = Number(group.dataset.memoryDispatchIndex);
+        const isActiveGroup =
+          (baseMemoryFramesVisible && nextActiveMemoryGroups.includes(group)) ||
+          (group.dataset.memoryGroupKind === "video" && proofVisibleDispatchIndexes.has(groupDispatchIndex));
 
         group.classList.toggle("is-active", isActiveGroup);
         group.setAttribute("aria-hidden", isActiveGroup ? "false" : "true");
       });
-      activeMemoryGroup = memoryFramesVisible ? nextActiveMemoryGroup : null;
+      activeMemoryGroups = memoryFramesVisible
+        ? memoryFrameGroups.filter((group) => group.classList.contains("is-active"))
+        : [];
 
+      const selectedMemoryGroup = selectedMemoryFrame ? getFrameGroup(selectedMemoryFrame) : null;
       if (
         !memoryFramesVisible ||
-        (selectedMemoryFrame && activeMemoryGroup && !activeMemoryGroup.contains(selectedMemoryFrame))
+        (selectedMemoryGroup && !activeMemoryGroups.includes(selectedMemoryGroup))
       ) {
         clearMemorySelection();
       }
@@ -819,6 +1278,7 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
           ? state.content * stackReveal
           : 0;
         const textDecryptProgress = (() => {
+          if (reducedMotionQuery.matches) return 1;
           if (index < activeIndex) return 1;
           if (!isVisible || stackIndex !== 0) return 0;
 
@@ -870,7 +1330,7 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       const introProgress = smoothstep(0, 1, rawIntroProgress);
       const ageTimelineOpacity = smoothstep(postIntroStartShare, dispatchStartShare, progress);
       const outputOffset = (() => {
-        if (window.matchMedia("(max-width: 680px)").matches) return 0;
+        if (compactMediaQuery.matches) return 0;
 
         const viewportWidth = window.innerWidth || stage.clientWidth || 1280;
         const finalOffset = clamp(viewportWidth * -0.11, -220, -120);
@@ -923,14 +1383,23 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       const stageWidth = stage.clientWidth || window.innerWidth;
       const cellWidthRatio = 0.6;
       const lineHeightRatio = 0.84;
+      const isCompactRender = compactMediaQuery.matches;
       const videoAspect = video.videoWidth && video.videoHeight
         ? video.videoWidth / video.videoHeight
         : 9 / 16;
-      const rows = Math.round(clamp(stageHeight / 6.6, 96, 154));
+      const rows = Math.round(
+        isCompactRender
+          ? clamp(stageHeight / 8.3, 74, 112)
+          : clamp(stageHeight / 6.6, 96, 154),
+      );
       const fontSize = stageHeight / (rows * lineHeightRatio);
       const fullWidthColumns = Math.ceil(stageWidth / (fontSize * cellWidthRatio));
       const nativeSnakeColumns = Math.round(rows * videoAspect * (lineHeightRatio / cellWidthRatio));
-      const columns = Math.round(clamp(fullWidthColumns, 72, 320));
+      const columns = Math.round(
+        isCompactRender
+          ? clamp(fullWidthColumns, 54, 190)
+          : clamp(fullWidthColumns, 72, 320),
+      );
       const drawWidth = Math.min(nativeSnakeColumns, columns);
 
       canvas.width = columns;
@@ -1203,31 +1672,34 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
     };
 
     const startIdleTexture = () => {
-      if (idleTextureInterval || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (idleTextureInterval || reducedMotionQuery.matches) {
         return;
       }
 
+      const idleDelay = compactMediaQuery.matches ? 540 : 320;
+      const idleInterval = compactMediaQuery.matches ? 860 : 520;
+
       idleTextureInterval = window.setInterval(() => {
         if (document.hidden || isSeeking || !duration) return;
-        if (performance.now() - lastMotionAt < 320) return;
+        if (performance.now() - lastMotionAt < idleDelay) return;
 
         texturePhase += 1;
         renderFrame(texturePhase);
-      }, 520);
+      }, idleInterval);
     };
 
     const handleMetadata = () => {
       duration = video.duration || 0;
       resizeCanvas();
 
-      const isCompactScroll = window.matchMedia("(max-width: 680px)").matches;
-      const dispatchScrollVh = dispatches.length * (isCompactScroll ? 92 : 118);
-      const videoScrollVh = duration * (isCompactScroll ? 44 : 52);
-      const baseScrollVh = isCompactScroll ? 360 : 460;
+      const isCompactScroll = compactMediaQuery.matches;
+      const dispatchScrollVh = totalDispatchScrollWeight * (isCompactScroll ? 110 : 118);
+      const videoScrollVh = duration * (isCompactScroll ? 40 : 52);
+      const baseScrollVh = isCompactScroll ? 300 : 460;
       const scrollVh = clamp(
         videoScrollVh + dispatchScrollVh + baseScrollVh,
-        isCompactScroll ? 1320 : 1680,
-        isCompactScroll ? 1900 : 2200,
+        isCompactScroll ? 1500 : 1680,
+        isCompactScroll ? 2550 : 2750,
       );
       section.style.setProperty("--ascii-hero-height", `${scrollVh}svh`);
       updateHeroState(getScrollProgress());
