@@ -1445,7 +1445,10 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
           : clamp(stageHeight / 6.6, 96, 154),
       );
       const fontSize = stageHeight / (rows * lineHeightRatio);
-      const fullWidthColumns = Math.ceil(stageWidth / (fontSize * cellWidthRatio));
+      const asciiFieldWidth = isCompactRender
+        ? Math.max(window.innerWidth || 0, stageWidth) + fontSize * 4
+        : stageWidth;
+      const fullWidthColumns = Math.ceil(asciiFieldWidth / (fontSize * cellWidthRatio));
       const nativeSnakeColumns = Math.round(rows * videoAspect * (lineHeightRatio / cellWidthRatio));
       const columns = Math.round(
         isCompactRender
