@@ -817,6 +817,34 @@ p {
   height: clamp(31px, 3.6vw, 45px);
 }
 
+.ascii-hero__memory-logo-item[data-logo-size="compact"] {
+  width: clamp(128px, 12vw, 174px);
+  height: clamp(32px, 3.7vw, 46px);
+}
+
+.ascii-hero__memory-logo-link,
+.ascii-hero__mobile-logo-link {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  color: inherit;
+  place-items: center;
+  text-decoration: none;
+}
+
+.ascii-hero__memory-logo-link {
+  pointer-events: auto;
+  transition: opacity 160ms ease;
+}
+
+.ascii-hero__memory-logo-link:hover,
+.ascii-hero__memory-logo-link:focus-visible,
+.ascii-hero__mobile-logo-link:hover,
+.ascii-hero__mobile-logo-link:focus-visible {
+  opacity: 0.72;
+  outline: none;
+}
+
 .ascii-hero__memory-logo {
   display: block;
   width: 100%;
@@ -1660,6 +1688,18 @@ h3 {
     overflow: hidden;
   }
 
+  .ascii-hero__mobile-logo-link {
+    flex: 0 1 auto;
+    width: auto;
+    max-width: 36%;
+    height: clamp(22px, 7vw, 34px);
+  }
+
+  .ascii-hero__mobile-logo-link[data-logo-size="compact"] {
+    max-width: 42%;
+    height: clamp(21px, 6.4vw, 32px);
+  }
+
   .ascii-hero__mobile-logo {
     display: block;
     width: auto;
@@ -1667,6 +1707,17 @@ h3 {
     height: clamp(22px, 7vw, 34px);
     filter: brightness(0) invert(1);
     object-fit: contain;
+  }
+
+  .ascii-hero__mobile-logo-link .ascii-hero__mobile-logo {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+  }
+
+  .ascii-hero__mobile-logo[data-logo-size="compact"] {
+    max-width: 42%;
+    height: clamp(21px, 6.4vw, 32px);
   }
 
   .ascii-hero__mobile-logo:first-child {

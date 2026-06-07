@@ -5,6 +5,8 @@ type MemoryFrame = {
   src: string;
   alt: string;
   kind?: "photo" | "logo" | "video";
+  href?: string;
+  logoSize?: "default" | "compact";
   enterSrc?: string;
   exitSrc?: string;
   aspectRatio?: string;
@@ -59,6 +61,16 @@ const waterQualityFrames: MemoryFrame[] = [
   },
 ];
 
+const redoFrames: MemoryFrame[] = [
+  {
+    src: "/redo-logo-knockout.svg",
+    alt: "Redo logo",
+    kind: "logo",
+    href: "https://redo.com",
+    logoSize: "compact",
+  },
+];
+
 const heroDispatches: HeroDispatch[] = [
   {
     eyebrow: "Origin",
@@ -110,6 +122,7 @@ const heroDispatches: HeroDispatch[] = [
     eyebrow: "Redo",
     age: "22",
     text: "Left BYU to join Redo, Utah's fastest-growing startup.",
+    memoryFrames: redoFrames,
   },
   {
     eyebrow: "Operator",
@@ -309,12 +322,31 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
                             dispatch.memoryFrames
                               .filter((frame) => frame.kind === "logo")
                               .map((frame) => (
-                                <img
-                                  class="ascii-hero__mobile-logo"
-                                  src={frame.src}
-                                  alt=""
-                                  loading="lazy"
-                                />
+                                frame.href ? (
+                                  <a
+                                    class="ascii-hero__mobile-logo-link"
+                                    href={frame.href}
+                                    aria-label={frame.alt}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    data-logo-size={frame.logoSize ?? "default"}
+                                  >
+                                    <img
+                                      class="ascii-hero__mobile-logo"
+                                      src={frame.src}
+                                      alt=""
+                                      loading="lazy"
+                                    />
+                                  </a>
+                                ) : (
+                                  <img
+                                    class="ascii-hero__mobile-logo"
+                                    src={frame.src}
+                                    alt=""
+                                    loading="lazy"
+                                    data-logo-size={frame.logoSize ?? "default"}
+                                  />
+                                )
                               ))
                           }
                         </div>
@@ -449,14 +481,34 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
                       group.logoFrames.map((frame, index) => (
                         <figure
                           class="ascii-hero__memory-logo-item"
+                          data-logo-size={frame.logoSize ?? "default"}
                           style={`--memory-frame-index: ${index};`}
                         >
-                          <img
-                            class="ascii-hero__memory-logo"
-                            src={frame.src}
-                            alt={frame.alt}
-                            loading="lazy"
-                          />
+                          {
+                            frame.href ? (
+                              <a
+                                class="ascii-hero__memory-logo-link"
+                                href={frame.href}
+                                aria-label={frame.alt}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                <img
+                                  class="ascii-hero__memory-logo"
+                                  src={frame.src}
+                                  alt=""
+                                  loading="lazy"
+                                />
+                              </a>
+                            ) : (
+                              <img
+                                class="ascii-hero__memory-logo"
+                                src={frame.src}
+                                alt={frame.alt}
+                                loading="lazy"
+                              />
+                            )
+                          }
                         </figure>
                       ))
                     }
