@@ -82,6 +82,7 @@ import FuzzyText from "./FuzzyText.jsx";
     let texturePhase = 0;
     let currentLines: string[] = [];
     let videoSourceRect = { x: 0, y: 0, width: 0, height: 0 };
+    let videoDrawRect = { x: 0, y: 0, width: 0, height: 0 };
 
     const resizeCanvas = () => {
       const frameWidth = frame.clientWidth || window.innerWidth;
@@ -112,6 +113,22 @@ import FuzzyText from "./FuzzyText.jsx";
         y: sourceY,
         width: sourceWidth,
         height: sourceHeight,
+      };
+      const sourceAspect = sourceWidth / Math.max(sourceHeight, 1);
+      const canvasAspect = (columns * cellWidthRatio) / (rows * lineHeightRatio);
+      const shouldPreserveAspect = isCompactRender;
+      const drawWidth = shouldPreserveAspect && sourceAspect < canvasAspect
+        ? Math.max(1, Math.round((rows * lineHeightRatio * sourceAspect) / cellWidthRatio))
+        : columns;
+      const drawHeight = shouldPreserveAspect && sourceAspect >= canvasAspect
+        ? Math.max(1, Math.round((columns * cellWidthRatio) / (sourceAspect * lineHeightRatio)))
+        : rows;
+
+      videoDrawRect = {
+        x: Math.round((columns - drawWidth) / 2),
+        y: Math.round((rows - drawHeight) / 2),
+        width: drawWidth,
+        height: drawHeight,
       };
       frame.style.setProperty("--footer-ascii-font-size", `${fontSize.toFixed(2)}px`);
     };
@@ -158,16 +175,17 @@ import FuzzyText from "./FuzzyText.jsx";
     const renderFrame = () => {
       if (!video.videoWidth || !canvas.width || !canvas.height) return;
 
+      context.clearRect(0, 0, canvas.width, canvas.height);
       context.drawImage(
         video,
         videoSourceRect.x,
         videoSourceRect.y,
         videoSourceRect.width,
         videoSourceRect.height,
-        0,
-        0,
-        canvas.width,
-        canvas.height,
+        videoDrawRect.x,
+        videoDrawRect.y,
+        videoDrawRect.width,
+        videoDrawRect.height,
       );
 
       const width = canvas.width;

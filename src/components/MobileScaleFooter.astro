@@ -1,0 +1,72 @@
+---
+const scalePath =
+  "M32 -9 C36 9 49 20 64 27 C64 51 51 68 32 77 C13 68 0 51 0 27 C15 20 28 9 32 -9 Z";
+const shapeId = "mobile-scale-footer-shape";
+
+const rows = 3;
+const columns = 22;
+const shieldWidth = 64;
+const rowY = [-22, 18, 58];
+
+const getNoise = (row: number, column: number) => {
+  const value = Math.sin((row + 4) * 31.73 + (column + 2) * 68.41 + 19.87) * 43758.5453;
+
+  return value - Math.floor(value);
+};
+
+const scaleRows = Array.from({ length: rows }, (_, row) => {
+  const stagger = row % 2 === 0 ? -32 : 0;
+
+  return {
+    delay: ((rows - row - 1) * 0.64).toFixed(3),
+    direction: row % 2 === 0 ? "left" : "right",
+    scales: Array.from({ length: columns }, (_, column) => {
+      const noise = getNoise(row, column);
+
+      return {
+        isFilled: noise > 0.976,
+        x: -192 + column * shieldWidth + stagger,
+        y: rowY[row],
+      };
+    }),
+  };
+});
+
+const rowMarkup = (row: (typeof scaleRows)[number]) =>
+  row.scales
+    .map(
+      (scale) => `
+        <use
+          class="norse-scale__body${scale.isFilled ? " norse-scale__body--filled" : ""}"
+          data-mobile-scale="true"
+          href="#${shapeId}"
+          x="${scale.x}"
+          y="${scale.y}"
+        />
+      `,
+    )
+    .join("");
+---
+
+<footer class="mobile-scale-footer" aria-hidden="true">
+  <svg
+    class="mobile-scale-footer__pattern"
+    viewBox="0 0 960 152"
+    preserveAspectRatio="xMidYMid slice"
+    focusable="false"
+  >
+    <defs>
+      <path id={shapeId} d={scalePath} />
+    </defs>
+    <rect class="mobile-scale-footer__backdrop" width="960" height="152" />
+    {
+      [...scaleRows].reverse().map((row) => (
+        <g
+          class={`mobile-scale-footer__row mobile-scale-footer__row--${row.direction}`}
+          style={`--delay: ${row.delay}s;`}
+          set:html={rowMarkup(row)}
+        />
+      ))
+    }
+  </svg>
+</footer>
