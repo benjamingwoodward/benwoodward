@@ -692,6 +692,20 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
   const dispatchEndShare = 0.995;
   const borderColor = [0x33, 0x45, 0x3d];
   const signalColor = [0xd9, 0xc7, 0x7d];
+  const traitWordPlacements = [
+    { word: "DISCIPLINE", x: 0.17, y: 0.16, frame: "slash" },
+    { word: "TASTE", x: 0.76, y: 0.14, frame: "bracket" },
+    { word: "LEVERAGE", x: 0.32, y: 0.25, frame: "angle" },
+    { word: "CRAFT", x: 0.84, y: 0.28, frame: "dots" },
+    { word: "VELOCITY", x: 0.12, y: 0.39, frame: "bare" },
+    { word: "PRECISION", x: 0.67, y: 0.42, frame: "slash" },
+    { word: "CURIOSITY", x: 0.26, y: 0.56, frame: "bracket" },
+    { word: "OWNERSHIP", x: 0.82, y: 0.58, frame: "angle" },
+    { word: "RESILIENCE", x: 0.16, y: 0.71, frame: "dots" },
+    { word: "JUDGMENT", x: 0.59, y: 0.74, frame: "bare" },
+    { word: "ENDURANCE", x: 0.38, y: 0.84, frame: "slash" },
+    { word: "BUILD", x: 0.75, y: 0.86, frame: "bracket" },
+  ];
 
   const clamp = (value: number, min: number, max: number) =>
     Math.min(Math.max(value, min), max);
@@ -1407,6 +1421,15 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       return value - Math.floor(value);
     };
 
+    const formatTraitWord = (word: string, frame: string) => {
+      if (frame === "slash") return `//${word}`;
+      if (frame === "bracket") return `[${word}]`;
+      if (frame === "angle") return `<${word}>`;
+      if (frame === "dots") return `.${word}.`;
+
+      return word;
+    };
+
     const renderFrame = (phase = 0) => {
       if (!video.videoWidth || !canvas.width || !canvas.height) return;
 
@@ -1428,6 +1451,7 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       const signalMap = new Float32Array(width * height);
       const composedCells = new Array<string>(width * height).fill(" ");
       const composedStrength = new Float32Array(width * height);
+      const snakeTargets: number[] = [];
       const lines: string[] = [];
 
       for (let index = 0; index < signalMap.length; index += 1) {
@@ -1439,6 +1463,10 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
 
         luminanceMap[index] = luminance;
         signalMap[index] = getSnakeSignal(red, green, blue, luminance);
+
+        if (signalMap[index] > 0.18) {
+          snakeTargets.push(index);
+        }
       }
 
       const getLocalContrast = (x: number, y: number, luminance: number) => {
@@ -1575,6 +1603,78 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
 
           placeComposedCell(composedX, composedY, glyph, strength);
         }
+      }
+
+      const traitVisibility = 1 - smoothstep(0.42, 0.9, assemblyProgress);
+      const traitPhase = phase || texturePhase;
+
+      if (traitVisibility > 0.035 && snakeTargets.length) {
+        traitWordPlacements.forEach((placement, placementIndex) => {
+          if (compactMediaQuery.matches && placementIndex % 2 === 1) return;
+
+          const clock = traitPhase * (0.18 + (placementIndex % 4) * 0.025) + placementIndex * 1.73;
+          const wave = (Math.sin(clock) + 1) / 2;
+          const pulse =
+            smoothstep(0.18, 0.42, wave) *
+            (1 - smoothstep(0.72, 0.98, wave));
+          const visibility = pulse * traitVisibility;
+
+          if (visibility <= 0.09) return;
+
+          const text = formatTraitWord(placement.word, placement.frame);
+          const wordX = Math.round(width * placement.x - text.length / 2);
+          const wordY = Math.round(height * placement.y);
+
+          for (let characterIndex = 0; characterIndex < text.length; characterIndex += 1) {
+            const character = text[characterIndex];
+            const targetNoise = getFieldNoise(
+              placementIndex * 37 + characterIndex * 11,
+              characterIndex + placementIndex,
+              71,
+            );
+            const targetIndex = snakeTargets[Math.floor(targetNoise * snakeTargets.length)];
+            const targetX = targetIndex % width;
+            const targetY = Math.floor(targetIndex / width);
+            const targetLuminance = luminanceMap[targetIndex];
+            const targetSignal = signalMap[targetIndex];
+            const targetShape = clamp(
+              ((targetLuminance - luminanceFloor) / (1 - luminanceFloor)) * 0.62 +
+                targetSignal * 0.42,
+              0,
+              1,
+            );
+            const targetGlyph = glyphRamp[Math.round(targetShape * (glyphRamp.length - 1))] || "#";
+            const sourceX = wordX + characterIndex;
+            const sourceY = wordY;
+            const assembleDelay = getFieldNoise(sourceX, sourceY, 83) * 0.2;
+            const localAssembly = smoothstep(assembleDelay, 1, assemblyEase);
+            const composedX = Math.round(sourceX + (targetX - sourceX) * localAssembly);
+            const composedY = Math.round(sourceY + (targetY - sourceY) * localAssembly);
+            const revealNoise = getTextureNoise(
+              placementIndex * 29 + characterIndex,
+              wordY,
+              traitPhase * 0.33 + 5,
+            );
+            const shouldReveal = visibility > 0.62 || visibility > revealNoise * 0.78;
+            const shouldResolveToSnake =
+              smoothstep(0.54, 0.9, localAssembly) > getFieldNoise(sourceX, sourceY, 89);
+            const fallbackIndex = Math.floor(
+              getFieldNoise(characterIndex, placementIndex, 59) * fieldGlyphRamp.length,
+            );
+            const glyph = shouldResolveToSnake
+              ? targetGlyph
+              : shouldReveal
+                ? character
+                : fieldGlyphRamp[fallbackIndex] || ".";
+
+            placeComposedCell(
+              composedX,
+              composedY,
+              glyph,
+              4 + visibility + placementIndex / 100,
+            );
+          }
+        });
       }
 
       for (let y = 0; y < height; y += 1) {
