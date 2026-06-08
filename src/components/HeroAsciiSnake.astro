@@ -629,31 +629,11 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
         role="img"
         aria-label="Selected image preview"
       >
-        <svg
-          class="ascii-hero__memory-lightbox-shield"
-          viewBox="-2 -12 68 94"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <defs>
-            <clipPath id="memory-lightbox-clip" clipPathUnits="userSpaceOnUse">
-              <path d={scalePath} />
-            </clipPath>
-          </defs>
-          <path class="ascii-hero__memory-lightbox-backdrop" d={scalePath} />
-          <image
-            class="ascii-hero__memory-lightbox-image"
-            data-memory-lightbox-image
-            x="-1"
-            y="-11"
-            width="66"
-            height="90"
-            preserveAspectRatio="xMidYMid slice"
-            clip-path="url(#memory-lightbox-clip)"
-          />
-          <path class="ascii-hero__memory-lightbox-stroke" d={scalePath} />
-        </svg>
+        <img
+          class="ascii-hero__memory-lightbox-image"
+          data-memory-lightbox-image
+          alt=""
+        />
         <span class="sr-only" data-memory-lightbox-caption>Selected childhood image</span>
       </div>
     </div>
@@ -703,8 +683,6 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
     ".:-=+*#%@";
   const fieldGlyphRamp =
     ".::---===+++***###%%%@@";
-  const encryptedTextGlyphs =
-    "01<>[]{}\\/|$#@%*+=-_";
   const luminanceFloor = 0.1;
   const foregroundBoost = 1.18;
   const introScrollShare = 0.24;
@@ -722,49 +700,6 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
     const amount = clamp((value - edge0) / (edge1 - edge0), 0, 1);
 
     return amount * amount * (3 - 2 * amount);
-  };
-
-  const getTextNoise = (index: number, salt: number) => {
-    const value =
-      Math.sin((index + 7) * 31.13 + (salt + 11) * 73.79) * 43758.5453;
-
-    return value - Math.floor(value);
-  };
-
-  const getDecryptRank = (index: number, length: number, salt: number) => {
-    const sequenceProgress = length <= 1 ? 0 : index / (length - 1);
-    const drift = getTextNoise(index, salt) * 0.24;
-
-    return clamp(sequenceProgress * 0.84 + drift, 0, 1);
-  };
-
-  const renderEncryptedText = (
-    text: string,
-    decryptProgress: number,
-    salt: number,
-    phase: number,
-  ) => {
-    const visibleCharacters = text.split("").filter((char) => char !== " ");
-    const visibleLength = Math.max(visibleCharacters.length, 1);
-    let visibleIndex = 0;
-
-    return text
-      .split("")
-      .map((char, index) => {
-        if (char === " ") return char;
-
-        const rank = getDecryptRank(visibleIndex, visibleLength, salt);
-        visibleIndex += 1;
-
-        if (decryptProgress >= rank) return char;
-
-        const glyphIndex = Math.floor(
-          getTextNoise(index + phase * 17, salt + phase) * encryptedTextGlyphs.length,
-        );
-
-        return encryptedTextGlyphs[glyphIndex] ?? encryptedTextGlyphs[0];
-      })
-      .join("");
   };
 
   const mixChannel = (from: number, to: number, amount: number) =>
@@ -803,25 +738,10 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
     const memoryLightboxFrame =
       section.querySelector<HTMLElement>("[data-memory-lightbox-frame]");
     const memoryLightboxImage =
-      section.querySelector<SVGImageElement>("[data-memory-lightbox-image]");
+      section.querySelector<HTMLImageElement>("[data-memory-lightbox-image]");
     const memoryLightboxCaption =
       section.querySelector<HTMLElement>("[data-memory-lightbox-caption]");
     const context = canvas?.getContext("2d");
-    const dispatchTextTargets = dispatches.map((dispatch, index) => {
-      const kicker =
-        dispatch.querySelector<HTMLElement>("[data-dispatch-kicker-text]");
-      const body =
-        dispatch.querySelector<HTMLElement>("[data-dispatch-body-text]");
-
-      return {
-        index,
-        kicker,
-        body,
-        kickerText: kicker?.dataset.dispatchKickerText ?? "",
-        bodyText: body?.dataset.dispatchBodyText ?? "",
-      };
-    });
-
     if (!video || !canvas || !output || !readout || !stage || !context) {
       return;
     }
@@ -836,7 +756,6 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
     let lastMotionAt = performance.now();
     let texturePhase = 0;
     let currentIntroProgress = 0;
-    let highestDecryptedDispatchIndex = -1;
     let videoDrawRect = { x: 0, y: 0, width: 0, height: 0 };
     let selectedMemoryFrame: HTMLElement | null = null;
     let activeMemoryGroups: HTMLElement[] = [];
@@ -847,34 +766,6 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
 
     const setOutput = (text: string) => {
       output.textContent = text;
-    };
-
-    const setDispatchText = (
-      target: (typeof dispatchTextTargets)[number],
-      decryptProgress: number,
-      phase: number,
-    ) => {
-      const resolvedProgress = clamp(decryptProgress, 0, 1);
-      const kickerText = renderEncryptedText(
-        target.kickerText,
-        resolvedProgress,
-        target.index * 3 + 1,
-        phase,
-      );
-      const bodyText = renderEncryptedText(
-        target.bodyText,
-        resolvedProgress,
-        target.index * 7 + 5,
-        phase,
-      );
-
-      if (target.kicker && target.kicker.textContent !== kickerText) {
-        target.kicker.textContent = kickerText;
-      }
-
-      if (target.body && target.body.textContent !== bodyText) {
-        target.body.textContent = bodyText;
-      }
     };
 
     const getFieldNoise = (x: number, y: number, salt: number) => {
@@ -891,6 +782,8 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       memoryLightbox?.classList.remove("is-active");
       memoryLightbox?.classList.remove("is-logo");
       memoryLightbox?.setAttribute("aria-hidden", "true");
+      memoryLightboxImage?.removeAttribute("src");
+      memoryLightboxImage?.setAttribute("alt", "");
       memoryFrameItems.forEach((frame) => {
         frame.classList.remove("is-selected");
         frame.setAttribute("aria-pressed", "false");
@@ -906,6 +799,16 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       if (!group || !group.classList.contains("is-active")) return [];
 
       return Array.from(group.querySelectorAll<HTMLElement>("[data-memory-frame]"));
+    };
+
+    const getMemoryFramePreview = (frame: HTMLElement) => {
+      const image = frame.querySelector<SVGImageElement>("image");
+      const caption = frame.querySelector<HTMLElement>("figcaption");
+
+      return {
+        href: image?.getAttribute("href") || "",
+        alt: caption?.textContent?.trim() || "Selected image",
+      };
     };
 
     const selectMemoryFrame = (frame: HTMLElement) => {
@@ -932,26 +835,16 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
         item.setAttribute("aria-pressed", isSelected ? "true" : "false");
       });
 
-      const image = frame.querySelector<SVGImageElement>("image");
-      const caption = frame.querySelector<HTMLElement>("figcaption");
-      const href = image?.getAttribute("href") || "";
-      const alt = caption?.textContent?.trim() || "Selected childhood image";
       const isLogoFrame = frame.dataset.memoryFrameKind === "logo";
+      const preview = getMemoryFramePreview(frame);
 
-      if (memoryLightboxImage && href) {
-        memoryLightboxImage.setAttribute("href", href);
-        memoryLightboxImage.setAttribute("x", isLogoFrame ? "5" : "-1");
-        memoryLightboxImage.setAttribute("y", isLogoFrame ? "2" : "-11");
-        memoryLightboxImage.setAttribute("width", isLogoFrame ? "54" : "66");
-        memoryLightboxImage.setAttribute("height", isLogoFrame ? "62" : "90");
-        memoryLightboxImage.setAttribute(
-          "preserveAspectRatio",
-          isLogoFrame ? "xMidYMid meet" : "xMidYMid slice",
-        );
+      if (memoryLightboxImage && preview.href) {
+        memoryLightboxImage.src = preview.href;
+        memoryLightboxImage.alt = preview.alt;
       }
 
       if (memoryLightboxCaption) {
-        memoryLightboxCaption.textContent = alt;
+        memoryLightboxCaption.textContent = preview.alt;
       }
 
       memoryLightbox?.classList.add("is-active");
@@ -1209,20 +1102,12 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
         { content: 0 },
         { content: 0 },
       ];
-      const encryptionPhase = Math.floor(weightedDispatchProgress * 18);
       const mobileCardWidth = isCompactStack
         ? window.innerWidth <= 430
           ? Math.min((window.innerWidth || 390) * 0.88, 360)
           : Math.min((window.innerWidth || 390) * 0.86, 390)
         : 0;
       const mobileSlideProgress = smoothstep(0.74, 1, segmentProgress);
-
-      if (
-        activeIndex >= 0 &&
-        (reducedMotionQuery.matches || segmentProgress >= 0.22)
-      ) {
-        highestDecryptedDispatchIndex = Math.max(highestDecryptedDispatchIndex, activeIndex);
-      }
 
       section.style.setProperty("--active-dispatch", `${activeIndex}`);
       section.style.setProperty("--age-progress", rawDispatchProgress.toFixed(3));
@@ -1343,15 +1228,6 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
         const contentOpacity = isVisible
           ? state.content * stackReveal
           : 0;
-        const textDecryptProgress = (() => {
-          if (reducedMotionQuery.matches) return 1;
-          if (index <= highestDecryptedDispatchIndex) return 1;
-          if (index < activeIndex) return 1;
-          if (!isVisible || stackIndex !== 0) return 0;
-
-          return smoothstep(0.02, 0.22, segmentProgress);
-        })();
-        const dispatchTextTarget = dispatchTextTargets[index];
         const mobileSlideX = (() => {
           if (!isCompactStack || !hasStarted) return 0;
 
@@ -1383,15 +1259,6 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
         dispatch.style.setProperty("--dispatch-x", `${mobileSlideX.toFixed(2)}px`);
         dispatch.style.setProperty("--dispatch-content-opacity", contentOpacity.toFixed(3));
         dispatch.style.setProperty("--dispatch-progress", isActive ? segmentProgress.toFixed(3) : "0");
-        dispatch.style.setProperty("--dispatch-decrypt-progress", textDecryptProgress.toFixed(3));
-
-        if (dispatchTextTarget) {
-          setDispatchText(
-            dispatchTextTarget,
-            textDecryptProgress,
-            stackIndex === 0 && textDecryptProgress < 1 ? encryptionPhase : index * 13,
-          );
-        }
       });
 
       ageItems.forEach((item, index) => {
