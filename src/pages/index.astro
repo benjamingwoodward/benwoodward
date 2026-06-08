@@ -1,6 +1,7 @@
 ---
 import HeroAsciiSnake from "../components/HeroAsciiSnake.astro";
 import FooterAsciiCobra from "../components/FooterAsciiCobra.astro";
+import MobileScaleFooter from "../components/MobileScaleFooter.astro";
 import NorsePattern from "../components/NorsePattern.astro";
 import SocialScaleStack from "../components/SocialScaleStack.astro";
 import "../styles/global.css";
@@ -168,6 +169,7 @@ const structuredDataJson = JSON.stringify(structuredData).replace(/</g, "\\u003c
       <HeroAsciiSnake />
       <FooterAsciiCobra />
     </main>
+    <MobileScaleFooter />
 
     <script>
       const revealItems = document.querySelectorAll("[data-reveal]");

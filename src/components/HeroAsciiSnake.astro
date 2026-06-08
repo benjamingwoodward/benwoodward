@@ -43,7 +43,7 @@ const missionFrames: MemoryFrame[] = [
   { src: "/mission-tampere.jpg", alt: "Benjamin by the river in Tampere, Finland during his mission" },
   { src: "/mission-temple.jpg", alt: "Benjamin outside a temple in Finland during his mission" },
   { src: "/mission-rollers.jpg", alt: "Benjamin rollerblading with a mission companion in Finland" },
-  { src: "/mission-reindeer.jpg", alt: "Benjamin standing with reindeer in Finland during his mission" },
+  { src: "/mission-snow-group.jpg", alt: "Benjamin with mission friends in snowy Finland" },
 ];
 
 const marathonFrames: MemoryFrame[] = [
@@ -285,9 +285,6 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
               data-dispatch-scroll-weight={dispatch.memoryFrames?.some((frame) => frame.kind === "video") ? "2.75" : "1"}
               style={`--dispatch-index: ${index};`}
             >
-              <p class="ascii-hero__mobile-progress">
-                {`AGE ${dispatch.age} / ${(index + 1).toString().padStart(2, "0")} OF ${heroDispatches.length.toString().padStart(2, "0")}`}
-              </p>
               <p class="ascii-hero__mobile-title">{dispatch.eyebrow}</p>
               <p
                 class="ascii-hero__dispatch-kicker"
@@ -839,6 +836,7 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
     let lastMotionAt = performance.now();
     let texturePhase = 0;
     let currentIntroProgress = 0;
+    let highestDecryptedDispatchIndex = -1;
     let videoDrawRect = { x: 0, y: 0, width: 0, height: 0 };
     let selectedMemoryFrame: HTMLElement | null = null;
     let activeMemoryGroups: HTMLElement[] = [];
@@ -1161,12 +1159,16 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
     const updateDispatches = (progress: number) => {
       if (!dispatches.length) return;
 
+      const isCompactStack = compactMediaQuery.matches;
+      const effectiveDispatchStartShare = isCompactStack
+        ? postIntroStartShare
+        : dispatchStartShare;
       const rawDispatchProgress = clamp(
-        (progress - dispatchStartShare) / (dispatchEndShare - dispatchStartShare),
+        (progress - effectiveDispatchStartShare) / (dispatchEndShare - effectiveDispatchStartShare),
         0,
         1,
       );
-      const hasStarted = progress >= dispatchStartShare;
+      const hasStarted = progress >= effectiveDispatchStartShare;
       const weightedDispatchProgress = rawDispatchProgress * totalDispatchScrollWeight;
       let accumulatedDispatchWeight = 0;
       let resolvedActiveIndex = -1;
@@ -1199,8 +1201,7 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       const columnOpacity = hasStarted
         ? clamp(columnIntroOpacity * columnExitOpacity, 0, 1)
         : 0;
-      const isCompactStack = compactMediaQuery.matches;
-      const stackDepth = isCompactStack ? 0 : 4;
+      const stackDepth = isCompactStack ? 1 : 4;
       const stackStates = [
         { content: 1 },
         { content: 0.82 },
@@ -1209,6 +1210,19 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
         { content: 0 },
       ];
       const encryptionPhase = Math.floor(weightedDispatchProgress * 18);
+      const mobileCardWidth = isCompactStack
+        ? window.innerWidth <= 430
+          ? Math.min((window.innerWidth || 390) * 0.88, 360)
+          : Math.min((window.innerWidth || 390) * 0.86, 390)
+        : 0;
+      const mobileSlideProgress = smoothstep(0.74, 1, segmentProgress);
+
+      if (
+        activeIndex >= 0 &&
+        (reducedMotionQuery.matches || segmentProgress >= 0.22)
+      ) {
+        highestDecryptedDispatchIndex = Math.max(highestDecryptedDispatchIndex, activeIndex);
+      }
 
       section.style.setProperty("--active-dispatch", `${activeIndex}`);
       section.style.setProperty("--age-progress", rawDispatchProgress.toFixed(3));
@@ -1331,20 +1345,42 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
           : 0;
         const textDecryptProgress = (() => {
           if (reducedMotionQuery.matches) return 1;
+          if (index <= highestDecryptedDispatchIndex) return 1;
           if (index < activeIndex) return 1;
           if (!isVisible || stackIndex !== 0) return 0;
 
           return smoothstep(0.02, 0.22, segmentProgress);
         })();
         const dispatchTextTarget = dispatchTextTargets[index];
+        const mobileSlideX = (() => {
+          if (!isCompactStack || !hasStarted) return 0;
+
+          const slidePosition = stackIndex === 0
+            ? -mobileSlideProgress
+            : stackIndex === 1
+              ? 1 - mobileSlideProgress
+              : stackIndex;
+
+          return clamp(slidePosition * mobileCardWidth, mobileCardWidth * -1.12, mobileCardWidth * 1.12);
+        })();
+        const mobilePanelOpacity = (() => {
+          if (!isCompactStack || !hasStarted) return cardOpacity;
+          if (stackIndex === 0 || stackIndex === 1) return columnOpacity;
+
+          return 0;
+        })();
 
         dispatch.classList.toggle("is-active", isActive);
         dispatch.classList.toggle("is-stacked", isStacked);
         dispatch.classList.toggle("is-skeleton", isVisible && stackIndex >= 3);
         dispatch.setAttribute("aria-hidden", isActive ? "false" : "true");
-        dispatch.style.setProperty("--dispatch-opacity", cardOpacity.toFixed(3));
+        dispatch.style.setProperty(
+          "--dispatch-opacity",
+          (isCompactStack ? mobilePanelOpacity : cardOpacity).toFixed(3),
+        );
         dispatch.style.setProperty("--dispatch-stack-index", `${Math.max(stackIndex, 0)}`);
         dispatch.style.setProperty("--dispatch-y", "0px");
+        dispatch.style.setProperty("--dispatch-x", `${mobileSlideX.toFixed(2)}px`);
         dispatch.style.setProperty("--dispatch-content-opacity", contentOpacity.toFixed(3));
         dispatch.style.setProperty("--dispatch-progress", isActive ? segmentProgress.toFixed(3) : "0");
         dispatch.style.setProperty("--dispatch-decrypt-progress", textDecryptProgress.toFixed(3));
@@ -1748,7 +1784,7 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       resizeCanvas();
 
       const isCompactScroll = compactMediaQuery.matches;
-      const dispatchScrollVh = totalDispatchScrollWeight * (isCompactScroll ? 110 : 118);
+      const dispatchScrollVh = totalDispatchScrollWeight * (isCompactScroll ? 132 : 118);
       const videoScrollVh = duration * (isCompactScroll ? 40 : 52);
       const baseScrollVh = isCompactScroll ? 300 : 460;
       const scrollVh = clamp(
