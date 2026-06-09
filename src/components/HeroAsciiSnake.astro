@@ -9,6 +9,8 @@ type MemoryFrame = {
   logoSize?: "default" | "compact";
   enterSrc?: string;
   exitSrc?: string;
+  mobileEnterSrc?: string;
+  mobileExitSrc?: string;
   aspectRatio?: string;
 };
 
@@ -55,6 +57,8 @@ const waterQualityFrames: MemoryFrame[] = [
     src: "/pureflow-enter.webm",
     enterSrc: "/pureflow-enter.webm",
     exitSrc: "/pureflow-exit.webm",
+    mobileEnterSrc: "/pureflow-enter-alpha.mov",
+    mobileExitSrc: "/pureflow-exit-alpha.mov",
     alt: "Pureflow water-quality software landing page demo",
     kind: "video",
     aspectRatio: "1 / 1",
@@ -425,21 +429,45 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
                             <video
                               class="ascii-hero__proof-video ascii-hero__proof-video--enter"
                               data-dispatch-proof-enter
-                              src={frame.enterSrc ?? frame.src}
+                              data-proof-desktop-src={frame.enterSrc ?? frame.src}
+                              data-proof-mobile-src={frame.mobileEnterSrc}
                               muted
                               playsinline
                               preload="auto"
                               aria-label={`${frame.alt} intro`}
-                            />
+                            >
+                              {
+                                frame.mobileEnterSrc && (
+                                  <source
+                                    media="(max-width: 680px)"
+                                    src={frame.mobileEnterSrc}
+                                    type={`video/quicktime; codecs="hvc1"`}
+                                  />
+                                )
+                              }
+                              <source src={frame.enterSrc ?? frame.src} type="video/webm" />
+                            </video>
                             <video
                               class="ascii-hero__proof-video ascii-hero__proof-video--exit"
                               data-dispatch-proof-exit
-                              src={frame.exitSrc ?? frame.src}
+                              data-proof-desktop-src={frame.exitSrc ?? frame.src}
+                              data-proof-mobile-src={frame.mobileExitSrc}
                               muted
                               playsinline
                               preload="auto"
                               aria-label={`${frame.alt} outro`}
-                            />
+                            >
+                              {
+                                frame.mobileExitSrc && (
+                                  <source
+                                    media="(max-width: 680px)"
+                                    src={frame.mobileExitSrc}
+                                    type={`video/quicktime; codecs="hvc1"`}
+                                  />
+                                )
+                              }
+                              <source src={frame.exitSrc ?? frame.src} type="video/webm" />
+                            </video>
                             <figcaption class="sr-only">{frame.alt}</figcaption>
                           </figure>
                         ))
@@ -592,21 +620,45 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
                           <video
                             class="ascii-hero__proof-video ascii-hero__proof-video--enter"
                             data-dispatch-proof-enter
-                            src={frame.enterSrc ?? frame.src}
+                            data-proof-desktop-src={frame.enterSrc ?? frame.src}
+                            data-proof-mobile-src={frame.mobileEnterSrc}
                             muted
                             playsinline
                             preload="auto"
                             aria-label={`${frame.alt} intro`}
-                          />
+                          >
+                            {
+                              frame.mobileEnterSrc && (
+                                <source
+                                  media="(max-width: 680px)"
+                                  src={frame.mobileEnterSrc}
+                                  type={`video/quicktime; codecs="hvc1"`}
+                                />
+                              )
+                            }
+                            <source src={frame.enterSrc ?? frame.src} type="video/webm" />
+                          </video>
                           <video
                             class="ascii-hero__proof-video ascii-hero__proof-video--exit"
                             data-dispatch-proof-exit
-                            src={frame.exitSrc ?? frame.src}
+                            data-proof-desktop-src={frame.exitSrc ?? frame.src}
+                            data-proof-mobile-src={frame.mobileExitSrc}
                             muted
                             playsinline
                             preload="auto"
                             aria-label={`${frame.alt} outro`}
-                          />
+                          >
+                            {
+                              frame.mobileExitSrc && (
+                                <source
+                                  media="(max-width: 680px)"
+                                  src={frame.mobileExitSrc}
+                                  type={`video/quicktime; codecs="hvc1"`}
+                                />
+                              )
+                            }
+                            <source src={frame.exitSrc ?? frame.src} type="video/webm" />
+                          </video>
                           <figcaption class="sr-only">{frame.alt}</figcaption>
                         </figure>
                       ))
@@ -765,6 +817,11 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
 
     const compactMediaQuery = window.matchMedia("(max-width: 680px)");
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const alphaVideoProbe = document.createElement("video");
+    const supportsMobileAlphaVideo = Boolean(
+      alphaVideoProbe.canPlayType(`video/quicktime; codecs="hvc1"`) ||
+      alphaVideoProbe.canPlayType(`video/mp4; codecs="hvc1"`),
+    );
     let duration = 0;
     let pendingTime = 0;
     let isSeeking = false;
@@ -949,6 +1006,39 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
         card.querySelector<HTMLVideoElement>("[data-dispatch-proof-exit]"),
       ].filter(Boolean) as HTMLVideoElement[];
 
+    const getProofVideoPreferredSource = (video: HTMLVideoElement) => {
+      const desktopSource =
+        video.dataset.proofDesktopSrc ||
+        video.querySelector("source:not([media])")?.getAttribute("src") ||
+        "";
+      const mobileSource = video.dataset.proofMobileSrc || "";
+
+      if (compactMediaQuery.matches && supportsMobileAlphaVideo && mobileSource) {
+        return mobileSource;
+      }
+
+      return desktopSource;
+    };
+
+    const syncProofVideoSource = (video: HTMLVideoElement) => {
+      const preferredSource = getProofVideoPreferredSource(video);
+      if (!preferredSource || video.getAttribute("src") === preferredSource) return;
+
+      const shouldResume = !video.paused && !video.ended;
+
+      video.pause();
+      video.setAttribute("src", preferredSource);
+      video.load();
+
+      if (shouldResume) {
+        video.addEventListener("loadeddata", () => video.play().catch(() => undefined), { once: true });
+      }
+    };
+
+    const syncProofCardSources = (card: HTMLElement) => {
+      getProofVideos(card).forEach(syncProofVideoSource);
+    };
+
     const setProofVideoTime = (video: HTMLVideoElement, time: number) => {
       const applyTime = () => {
         try {
@@ -968,6 +1058,7 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
     const resetProofCard = (card: HTMLElement) => {
       proofVideoActiveStates.set(card, false);
       proofVideoQueues.delete(card);
+      syncProofCardSources(card);
 
       getProofVideos(card).forEach((video) => {
         video.pause();
@@ -1007,6 +1098,7 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
 
       const state = segment === "enter" ? "entering" : "exiting";
 
+      syncProofVideoSource(video);
       video.pause();
 
       const beginPlayback = () => {
@@ -1039,6 +1131,7 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
     dispatchProofCards.forEach((card) => {
       setProofVideoState(card, "idle");
       proofVideoActiveStates.set(card, false);
+      syncProofCardSources(card);
 
       (["enter", "exit"] as ProofSegment[]).forEach((segment) => {
         const video = getProofVideo(card, segment);
@@ -1145,6 +1238,7 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
             const video = getProofVideo(card, "enter");
 
             if (video) {
+              syncProofVideoSource(video);
               getProofVideo(card, "exit")?.pause();
 
               const seekToEnd = () => {
@@ -1798,6 +1892,7 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
 
     window.addEventListener("scroll", queueScrollSync, { passive: true });
     window.addEventListener("resize", () => {
+      dispatchProofCards.forEach(syncProofCardSources);
       resizeCanvas();
       queueScrollSync();
     });
