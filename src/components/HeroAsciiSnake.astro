@@ -285,21 +285,23 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
               data-dispatch-scroll-weight={dispatch.memoryFrames?.some((frame) => frame.kind === "video") ? "2.75" : "1"}
               style={`--dispatch-index: ${index};`}
             >
-              <p class="ascii-hero__mobile-title">{dispatch.eyebrow}</p>
-              <p
-                class="ascii-hero__dispatch-kicker"
-                data-dispatch-kicker-text={`${(index + 1).toString().padStart(2, "0")} / ${heroDispatches.length.toString().padStart(2, "0")} ${dispatch.eyebrow}`}
-                aria-label={`${(index + 1).toString().padStart(2, "0")} / ${heroDispatches.length.toString().padStart(2, "0")} ${dispatch.eyebrow}`}
-              >
-                {`${(index + 1).toString().padStart(2, "0")} / ${heroDispatches.length.toString().padStart(2, "0")} ${dispatch.eyebrow}`}
-              </p>
-              <p
-                class="ascii-hero__dispatch-text"
-                data-dispatch-body-text={dispatch.text}
-                aria-label={dispatch.text}
-              >
-                {dispatch.text}
-              </p>
+              <div class="ascii-hero__mobile-card-copy">
+                <p class="ascii-hero__mobile-title">{dispatch.eyebrow}</p>
+                <p
+                  class="ascii-hero__dispatch-kicker"
+                  data-dispatch-kicker-text={`${(index + 1).toString().padStart(2, "0")} / ${heroDispatches.length.toString().padStart(2, "0")} ${dispatch.eyebrow}`}
+                  aria-label={`${(index + 1).toString().padStart(2, "0")} / ${heroDispatches.length.toString().padStart(2, "0")} ${dispatch.eyebrow}`}
+                >
+                  {`${(index + 1).toString().padStart(2, "0")} / ${heroDispatches.length.toString().padStart(2, "0")} ${dispatch.eyebrow}`}
+                </p>
+                <p
+                  class="ascii-hero__dispatch-text"
+                  data-dispatch-body-text={dispatch.text}
+                  aria-label={dispatch.text}
+                >
+                  {dispatch.text}
+                </p>
+              </div>
               {
                 dispatch.memoryFrames && (
                   <div
@@ -355,6 +357,7 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
                             class="ascii-hero__mobile-memory-row"
                             data-mobile-memory-row
                             data-mobile-memory-count={dispatch.memoryFrames.filter((frame) => frame.kind !== "logo" && frame.kind !== "video").length}
+                            style={`--mobile-memory-count: ${dispatch.memoryFrames.filter((frame) => frame.kind !== "logo" && frame.kind !== "video").length};`}
                           >
                             {
                               dispatch.memoryFrames
@@ -368,7 +371,7 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
                                     role="button"
                                     tabindex="0"
                                     aria-pressed="false"
-                                    style={`--memory-frame-index: ${frameIndex};`}
+                                    style={`--memory-frame-index: ${frameIndex}; --memory-frame-row: ${Math.floor(frameIndex / 2)}; --memory-frame-column: ${frameIndex % 2};`}
                                   >
                                     <svg
                                       class="ascii-hero__memory-shield"
@@ -1227,8 +1230,16 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
       dispatches.forEach((dispatch, index) => {
         const stackIndex = index - activeIndex;
         const isActive = hasStarted && stackIndex === 0;
-        const isStacked = hasStarted && stackIndex > 0 && stackIndex <= stackDepth;
-        const isVisible = isActive || isStacked;
+        const hasVisibleProofVideo =
+          isCompactStack && proofVisibleDispatchIndexes.has(index);
+        const isMobileNeighbor =
+          isCompactStack && hasStarted && stackIndex >= -1 && stackIndex <= 1;
+        const isStacked = hasStarted && (
+          hasVisibleProofVideo ||
+          (isCompactStack && stackIndex !== 0 && stackIndex >= -1 && stackIndex <= 1) ||
+          (!isCompactStack && stackIndex > 0 && stackIndex <= stackDepth)
+        );
+        const isVisible = isActive || isStacked || isMobileNeighbor || hasVisibleProofVideo;
         const state = stackStates[stackIndex] || stackStates[stackStates.length - 1];
         const stackReveal = (() => {
           if (stackIndex <= 1) return 1;
@@ -1255,7 +1266,8 @@ const dispatchGridFills = [1, 0.86, 0.08, 0, 0];
         })();
         const mobilePanelOpacity = (() => {
           if (!isCompactStack || !hasStarted) return cardOpacity;
-          if (stackIndex === 0 || stackIndex === 1) return columnOpacity;
+          if (hasVisibleProofVideo) return 1;
+          if (stackIndex >= -1 && stackIndex <= 1) return columnOpacity;
 
           return 0;
         })();
