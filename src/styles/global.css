@@ -266,6 +266,7 @@ p {
 
 .social-scale-stack:hover,
 .social-scale-stack:focus-within,
+.social-scale-stack.is-expanded,
 .footer-cobra-complete .social-scale-stack {
   --social-scale-gap: var(--social-scale-hover-gap);
 }
@@ -304,6 +305,7 @@ p {
 
 .social-scale-stack:hover .social-scale,
 .social-scale-stack:focus-within .social-scale,
+.social-scale-stack.is-expanded .social-scale,
 .footer-cobra-complete .social-scale-stack .social-scale {
   --social-scale-shift: 0;
 }
@@ -1593,20 +1595,44 @@ h3 {
     transform: translateY(-50%);
   }
 
+  .social-scale-stack:hover,
+  .social-scale-stack:focus-within {
+    --social-scale-gap: 0px;
+  }
+
+  .social-scale-stack:hover .social-scale,
+  .social-scale-stack:focus-within .social-scale {
+    --social-scale-shift: var(--mobile-social-shift);
+  }
+
   .social-scale:nth-child(1) {
+    --mobile-social-shift: 0;
     --social-scale-shift: 0;
   }
 
   .social-scale:nth-child(2) {
+    --mobile-social-shift: calc(var(--social-scale-width) * -0.42);
     --social-scale-shift: calc(var(--social-scale-width) * -0.42);
   }
 
   .social-scale:nth-child(3) {
+    --mobile-social-shift: calc(var(--social-scale-width) * -0.84);
     --social-scale-shift: calc(var(--social-scale-width) * -0.84);
   }
 
   .social-scale:nth-child(4) {
+    --mobile-social-shift: calc(var(--social-scale-width) * -1.26);
     --social-scale-shift: calc(var(--social-scale-width) * -1.26);
+  }
+
+  .social-scale-stack.is-expanded,
+  .footer-cobra-complete .social-scale-stack {
+    --social-scale-gap: var(--social-scale-hover-gap);
+  }
+
+  .social-scale-stack.is-expanded .social-scale,
+  .footer-cobra-complete .social-scale-stack .social-scale {
+    --social-scale-shift: 0;
   }
 
   .social-scale:hover {

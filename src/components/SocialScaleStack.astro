@@ -33,7 +33,7 @@ const socials = [
 ];
 ---
 
-<nav class="social-scale-stack" aria-label="Social links">
+<nav class="social-scale-stack" aria-label="Social links" data-social-scale-stack>
   {
     socials.map((item) => (
       <a
@@ -64,3 +64,54 @@ const socials = [
     ))
   }
 </nav>
+
+<script>
+  (() => {
+    const compactQuery = window.matchMedia("(max-width: 680px)");
+    const stacks = Array.from(document.querySelectorAll<HTMLElement>("[data-social-scale-stack]"));
+
+    if (!stacks.length) return;
+
+    const collapseStacks = () => {
+      stacks.forEach((stack) => {
+        stack.classList.remove("is-expanded");
+        stack.setAttribute("aria-expanded", "false");
+      });
+    };
+
+    const expandStack = (stack: HTMLElement) => {
+      stack.classList.add("is-expanded");
+      stack.setAttribute("aria-expanded", "true");
+    };
+
+    stacks.forEach((stack) => {
+      stack.setAttribute("aria-expanded", "false");
+
+      stack.addEventListener(
+        "click",
+        (event) => {
+          if (!compactQuery.matches || stack.classList.contains("is-expanded")) return;
+
+          event.preventDefault();
+          event.stopPropagation();
+          expandStack(stack);
+        },
+        true,
+      );
+    });
+
+    document.addEventListener("pointerdown", (event) => {
+      if (!compactQuery.matches) return;
+
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (stacks.some((stack) => stack.contains(target))) return;
+
+      collapseStacks();
+    });
+
+    compactQuery.addEventListener("change", () => {
+      if (!compactQuery.matches) collapseStacks();
+    });
+  })();
+</script>
