@@ -1523,6 +1523,7 @@ h3 {
     --content-gutter: 14px;
     --mobile-social-scale-width: clamp(28px, 8vw, 34px);
     --mobile-header-height: calc((var(--mobile-social-scale-width) * 1.296) + 14px);
+    --mobile-dispatch-card-top: calc(env(safe-area-inset-top) + var(--mobile-header-height) - 1px);
     --mobile-dispatch-card-height: clamp(116px, 18svh, 148px);
     --mobile-scale-strip-height: clamp(62px, 17vw, 82px);
   }
@@ -1730,6 +1731,7 @@ h3 {
           ) / 2
         )
         + var(--mobile-dispatch-card-height)
+        - 1px
     );
     left: max(8px, env(safe-area-inset-left));
     display: grid;
@@ -1803,7 +1805,7 @@ h3 {
     justify-items: center;
     gap: clamp(8px, 1.7svh, 13px);
     padding:
-      calc(env(safe-area-inset-top) + var(--mobile-header-height) + 10px)
+      var(--mobile-dispatch-card-top)
       0
       calc(var(--mobile-scale-strip-height) + max(60px, env(safe-area-inset-bottom)))
       0;
@@ -1846,7 +1848,7 @@ h3 {
   .ascii-hero__dispatch::before {
     position: absolute;
     z-index: 0;
-    top: calc(env(safe-area-inset-top) + var(--mobile-header-height));
+    top: var(--mobile-dispatch-card-top);
     left: 0;
     display: block;
     width: 100%;
@@ -1861,7 +1863,7 @@ h3 {
   .ascii-hero__mobile-card-copy {
     position: absolute;
     z-index: 1;
-    top: calc(env(safe-area-inset-top) + var(--mobile-header-height));
+    top: var(--mobile-dispatch-card-top);
     left: 0;
     display: grid;
     width: 100%;
