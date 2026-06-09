@@ -907,6 +907,11 @@ p {
   object-fit: contain;
 }
 
+.ascii-hero__memory-logo[src="/redo-logo-knockout.svg"],
+.ascii-hero__mobile-logo[src="/redo-logo-knockout.svg"] {
+  filter: none;
+}
+
 .ascii-hero__memory-lightbox {
   position: fixed;
   z-index: 125;
@@ -2018,6 +2023,10 @@ h3 {
     height: clamp(22px, 7vw, 34px);
     filter: brightness(0) invert(1);
     object-fit: contain;
+  }
+
+  .ascii-hero__mobile-logo[src="/redo-logo-knockout.svg"] {
+    filter: none;
   }
 
   .ascii-hero__mobile-logo-link .ascii-hero__mobile-logo {
