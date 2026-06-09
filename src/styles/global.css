@@ -1677,12 +1677,14 @@ h3 {
 
   .ascii-hero__dispatches {
     z-index: 4;
-    top: 50%;
+    top: 0;
+    left: 0;
     --dispatch-column-width: 100vw;
     --dispatch-row-height: 100svh;
     width: 100vw;
     height: 100svh;
     overflow: visible;
+    transform: none;
   }
 
   .ascii-hero__dispatches::before {
@@ -1843,6 +1845,23 @@ h3 {
   .ascii-hero__dispatch::before,
   .ascii-hero__dispatch::after {
     display: none;
+  }
+
+  .ascii-hero__dispatch.is-active::after {
+    position: absolute;
+    z-index: 0;
+    top: var(--mobile-dispatch-card-top);
+    left: calc(100% - 1px);
+    display: block;
+    width: 100%;
+    height: var(--mobile-dispatch-card-height);
+    content: "";
+    background: var(--background);
+    border: 1px solid #33453d;
+    opacity: var(--dispatch-grid-opacity, 1);
+    pointer-events: none;
+    transform: translateX(var(--dispatch-x, 0px));
+    transition: transform 90ms linear;
   }
 
   .ascii-hero__dispatch::before {
@@ -2159,7 +2178,7 @@ h3 {
   }
 
   .ascii-hero__dispatches {
-    top: 50%;
+    top: 0;
     --dispatch-column-width: 100vw;
     width: 100vw;
   }
