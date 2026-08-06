@@ -1,4 +1,5 @@
 ---
+import Analytics from "@vercel/analytics/astro";
 import HeroAsciiSnake from "../components/HeroAsciiSnake.astro";
 import FooterAsciiCobra from "../components/FooterAsciiCobra.astro";
 import MobileScaleFooter from "../components/MobileScaleFooter.astro";
@@ -155,6 +156,7 @@ const structuredDataJson = JSON.stringify(structuredData).replace(/</g, "\\u003c
     <script is:inline>
       document.documentElement.classList.add("js");
     </script>
+    <Analytics />
   </head>
   <body>
     <a class="persistent-logo" href="/" aria-label="Benjamin Woodward home">
