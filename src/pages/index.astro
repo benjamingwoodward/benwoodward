@@ -157,6 +157,18 @@ const structuredDataJson = JSON.stringify(structuredData).replace(/</g, "\\u003c
       document.documentElement.classList.add("js");
     </script>
     <Analytics />
+    <script is:inline>
+      // Pings /api/hit so the server can log the visit; the IP comes from
+      // the request itself, not from anything the browser knows.
+      addEventListener("load", () => {
+        fetch("/api/hit", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ path: location.pathname }),
+          keepalive: true,
+        }).catch(() => {});
+      });
+    </script>
   </head>
   <body>
     <a class="persistent-logo" href="/" aria-label="Benjamin Woodward home">

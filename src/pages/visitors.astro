@@ -1,0 +1,181 @@
+---
+import { hasStore, readVisits, type Visit } from "../lib/visits";
+import "../styles/global.css";
+
+export const prerender = false;
+
+// Wrong key looks exactly like a page that was never there.
+const secret = process.env.VISITS_KEY ?? import.meta.env.VISITS_KEY;
+const authorised = Boolean(secret) && Astro.url.searchParams.get("key") === secret;
+if (!authorised) return new Response("Not found", { status: 404 });
+
+Astro.response.headers.set("x-robots-tag", "noindex, nofollow");
+Astro.response.headers.set("cache-control", "no-store");
+
+const configured = hasStore();
+let visits: Visit[] = [];
+let failure: string | null = null;
+
+if (configured) {
+  try {
+    visits = await readVisits();
+  } catch (error) {
+    failure = error instanceof Error ? error.message : String(error);
+  }
+}
+
+const uniqueVisitors = new Set(visits.map((visit) => visit.ip)).size;
+// Place names contain commas, so only the latest one is shown rather than a list.
+const latestPlace = visits[0]?.place ?? null;
+
+function when(ts: number) {
+  const seconds = Math.round((Date.now() - ts) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.round(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
+}
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Metamorphous&display=swap"
+      rel="stylesheet"
+    />
+    <title>Visitors</title>
+  </head>
+  <body class="visitors">
+    <header>
+      <h1>Visitors</h1>
+      {configured && !failure && (
+        <p class="summary">
+          {`${visits.length} visit${visits.length === 1 ? "" : "s"} from ${uniqueVisitors} address${uniqueVisitors === 1 ? "" : "es"}`}
+          {latestPlace && ` · most recently ${latestPlace}`}
+        </p>
+      )}
+    </header>
+
+    {!configured && (
+      <div class="notice">
+        <p>No store is attached yet, so visits only reach the Vercel logs.</p>
+        <p>
+          Add the Upstash integration in the Vercel Marketplace and redeploy —
+          it injects <code>KV_REST_API_URL</code> and <code>KV_REST_API_TOKEN</code>,
+          which is all this page is waiting for.
+        </p>
+      </div>
+    )}
+
+    {failure && (
+      <div class="notice">
+        <p>The store is configured but did not answer.</p>
+        <p><code>{failure}</code></p>
+      </div>
+    )}
+
+    {configured && !failure && visits.length === 0 && (
+      <div class="notice"><p>Nobody has been here since the store was attached.</p></div>
+    )}
+
+    <ol class="feed">
+      {visits.map((visit) => (
+        <li>
+          <p class="sentence">{visit.sentence}</p>
+          <p class="meta">
+            <time datetime={new Date(visit.ts).toISOString()}>{when(visit.ts)}</time>
+            <span>{visit.ip}</span>
+          </p>
+        </li>
+      ))}
+    </ol>
+  </body>
+</html>
+
+<style>
+  /* global.css puts Metamorphous on html; it carries the heading but is too
+     decorative for a dense list, so the body text drops back to system sans. */
+  .visitors {
+    max-width: 62rem;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 6rem;
+    font-family:
+      ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, sans-serif;
+    color: var(--foreground);
+  }
+
+  header {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  h1 {
+    font-family: "Metamorphous", serif;
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+
+  .summary {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0.5rem 0 0;
+  }
+
+  .notice {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1.25rem 1.5rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+
+  .notice p { margin: 0 0 0.75rem; }
+  .notice p:last-child { margin-bottom: 0; }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--accent);
+    font-size: 0.88em;
+  }
+
+  .feed {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .feed li {
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .sentence {
+    margin: 0;
+    font-size: 1.02rem;
+    line-height: 1.5;
+  }
+
+  /* Time and IP are reference detail, not the story. */
+  .meta {
+    display: flex;
+    gap: 1rem;
+    margin: 0.35rem 0 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  .meta span { color: var(--accent); }
+</style>
