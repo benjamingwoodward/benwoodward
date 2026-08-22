@@ -1,43 +1,80 @@
 ---
+import VisitorsGlobe from "../components/VisitorsGlobe.jsx";
 import { hasStore, readVisits, type Visit } from "../lib/visits";
+import {
+  SESSION_COOKIE,
+  sameSecret,
+  sessionCookieOptions,
+  sessionToken,
+  visitsSecret,
+} from "../lib/auth";
 import "../styles/global.css";
 
 export const prerender = false;
 
-// Wrong key looks exactly like a page that was never there.
-const secret = process.env.VISITS_KEY ?? import.meta.env.VISITS_KEY;
-const authorised = Boolean(secret) && Astro.url.searchParams.get("key") === secret;
-if (!authorised) return new Response("Not found", { status: 404 });
-
 Astro.response.headers.set("x-robots-tag", "noindex, nofollow");
 Astro.response.headers.set("cache-control", "no-store");
 
-const configured = hasStore();
+const secret = visitsSecret();
+// With no password configured there is nothing to unlock: behave like no page.
+if (!secret) return new Response("Not found", { status: 404 });
+
+const token = await sessionToken(secret);
+const cookie = Astro.cookies.get(SESSION_COOKIE)?.value;
+let authorised = cookie != null && sameSecret(cookie, token);
+let wrongPassword = false;
+
+// Either way of presenting the password ends in a cookie and a clean URL.
+function grant() {
+  Astro.cookies.set(SESSION_COOKIE, token, {
+    ...sessionCookieOptions,
+    // Local dev is plain http, where a Secure cookie would never come back.
+    secure: Astro.url.protocol === "https:",
+  });
+  return Astro.redirect("/visitors", 303);
+}
+
+if (!authorised && Astro.request.method === "POST") {
+  const form = await Astro.request.formData().catch(() => null);
+  const attempt = String(form?.get("key") ?? "");
+  if (attempt && sameSecret(attempt, secret)) return grant();
+  wrongPassword = true;
+}
+
+const urlKey = Astro.url.searchParams.get("key");
+if (!authorised && urlKey) {
+  if (sameSecret(urlKey, secret)) return grant();
+  // A stale or mistyped link still lands on the form, not on a dead end.
+  wrongPassword = true;
+}
+
+const configured = authorised && hasStore();
 let visits: Visit[] = [];
 let failure: string | null = null;
 
 if (configured) {
   try {
-    visits = await readVisits();
+    // Everything the store keeps; the island filters by time range client-side.
+    visits = await readVisits(1000);
   } catch (error) {
     failure = error instanceof Error ? error.message : String(error);
   }
 }
 
-const uniqueVisitors = new Set(visits.map((visit) => visit.ip)).size;
-// Place names contain commas, so only the latest one is shown rather than a list.
-const latestPlace = visits[0]?.place ?? null;
+const ready = configured && !failure && visits.length > 0;
 
-function when(ts: number) {
-  const seconds = Math.round((Date.now() - ts) / 1000);
-  if (seconds < 60) return "just now";
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
-  const days = Math.round(hours / 24);
-  return `${days} day${days === 1 ? "" : "s"} ago`;
-}
+// Compact rows keep the embedded payload small; the island inflates them.
+const rows = visits.map((v) => [
+  v.ts,
+  v.lat ?? null,
+  v.lng ?? null,
+  v.place,
+  v.client,
+  v.path,
+  v.referrer,
+  v.ip,
+  v.duration ?? null,
+]);
 ---
 
 <html lang="en">
@@ -54,68 +91,86 @@ function when(ts: number) {
     <title>Visitors</title>
   </head>
   <body class="visitors">
-    <header>
-      <h1>Visitors</h1>
-      {configured && !failure && (
-        <p class="summary">
-          {`${visits.length} visit${visits.length === 1 ? "" : "s"} from ${uniqueVisitors} address${uniqueVisitors === 1 ? "" : "es"}`}
-          {latestPlace && ` · most recently ${latestPlace}`}
-        </p>
-      )}
-    </header>
+    {!authorised ? (
+      <main class="shell gate">
+        <form method="post" action="/visitors" class="login" autocomplete="off">
+          <h1>Visitors</h1>
+          <label for="key">Password</label>
+          <div class="row">
+            <input
+              id="key"
+              name="key"
+              type="password"
+              autocomplete="current-password"
+              autofocus
+              required
+              aria-invalid={wrongPassword ? "true" : undefined}
+              aria-describedby={wrongPassword ? "key-error" : undefined}
+            />
+            <button type="submit">Enter</button>
+          </div>
+          {wrongPassword && <p id="key-error" class="error">That isn't it.</p>}
+          <p class="hint">Remembered on this browser for six months.</p>
+        </form>
+      </main>
+    ) : ready ? (
+      <VisitorsGlobe client:only="react" visits={rows}>
+        <main slot="fallback" class="shell">
+          <header><h1>Visitors</h1></header>
+          <div class="notice"><p>Loading the globe…</p></div>
+        </main>
+      </VisitorsGlobe>
+    ) : (
+      <main class="shell">
+        <header><h1>Visitors</h1></header>
 
-    {!configured && (
-      <div class="notice">
-        <p>No store is attached yet, so visits only reach the Vercel logs.</p>
-        <p>
-          Add the Upstash integration in the Vercel Marketplace and redeploy —
-          it injects <code>KV_REST_API_URL</code> and <code>KV_REST_API_TOKEN</code>,
-          which is all this page is waiting for.
-        </p>
-      </div>
+        {!configured && (
+          <div class="notice">
+            <p>No store is attached yet, so visits only reach the Vercel logs.</p>
+            <p>
+              Add the Upstash integration in the Vercel Marketplace and redeploy —
+              it injects <code>KV_REST_API_URL</code> and <code>KV_REST_API_TOKEN</code>,
+              which is all this page is waiting for.
+            </p>
+          </div>
+        )}
+
+        {failure && (
+          <div class="notice">
+            <p>The store is configured but did not answer.</p>
+            <p><code>{failure}</code></p>
+          </div>
+        )}
+
+        {configured && !failure && (
+          <div class="notice"><p>Nobody has been here since the store was attached.</p></div>
+        )}
+      </main>
     )}
-
-    {failure && (
-      <div class="notice">
-        <p>The store is configured but did not answer.</p>
-        <p><code>{failure}</code></p>
-      </div>
-    )}
-
-    {configured && !failure && visits.length === 0 && (
-      <div class="notice"><p>Nobody has been here since the store was attached.</p></div>
-    )}
-
-    <ol class="feed">
-      {visits.map((visit) => (
-        <li>
-          <p class="sentence">{visit.sentence}</p>
-          <p class="meta">
-            <time datetime={new Date(visit.ts).toISOString()}>{when(visit.ts)}</time>
-            <span>{visit.ip}</span>
-          </p>
-        </li>
-      ))}
-    </ol>
   </body>
 </html>
 
 <style>
-  /* global.css puts Metamorphous on html; it carries the heading but is too
-     decorative for a dense list, so the body text drops back to system sans. */
+  /* global.css puts Metamorphous on html; it carries headings but is too
+     decorative for dense data, so body text drops back to system sans. */
   .visitors {
-    max-width: 62rem;
-    margin: 0 auto;
-    padding: 4rem 1.5rem 6rem;
     font-family:
       ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, sans-serif;
     color: var(--foreground);
   }
 
+  /* Only the waiting/empty states use this centred column; the live view
+     lays itself out edge to edge. */
+  .shell {
+    max-width: 62rem;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 6rem;
+  }
+
   header {
     border-bottom: 1px solid var(--rule);
     padding-bottom: 1.25rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
   }
 
   h1 {
@@ -124,12 +179,6 @@ function when(ts: number) {
     font-weight: 400;
     letter-spacing: 0.02em;
     margin: 0;
-  }
-
-  .summary {
-    color: var(--muted);
-    font-size: 0.9rem;
-    margin: 0.5rem 0 0;
   }
 
   .notice {
@@ -141,6 +190,83 @@ function when(ts: number) {
     font-size: 0.92rem;
   }
 
+  .gate {
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: 2rem 1.5rem;
+  }
+
+  .login {
+    width: min(100%, 22rem);
+    display: grid;
+    gap: 0.6rem;
+    padding: 1.6rem 1.6rem 1.4rem;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+  }
+
+  .login h1 {
+    margin-bottom: 0.4rem;
+  }
+
+  .login label {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .login .row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .login input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0.6rem 0.75rem;
+    font: inherit;
+    color: var(--foreground);
+    background: var(--background);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    outline: none;
+  }
+
+  .login input:focus {
+    border-color: var(--accent);
+  }
+
+  .login input[aria-invalid="true"] {
+    border-color: #c96a5a;
+  }
+
+  .login button {
+    padding: 0.6rem 1rem;
+    font: inherit;
+    color: var(--background);
+    background: var(--accent);
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .login button:hover {
+    filter: brightness(1.08);
+  }
+
+  .login .error {
+    margin: 0;
+    font-size: 0.84rem;
+    color: #e0907f;
+  }
+
+  .login .hint {
+    margin: 0.2rem 0 0;
+    font-size: 0.76rem;
+    color: var(--muted);
+  }
+
   .notice p { margin: 0 0 0.75rem; }
   .notice p:last-child { margin-bottom: 0; }
 
@@ -149,33 +275,4 @@ function when(ts: number) {
     color: var(--accent);
     font-size: 0.88em;
   }
-
-  .feed {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .feed li {
-    padding: 1.1rem 0;
-    border-bottom: 1px solid var(--rule);
-  }
-
-  .sentence {
-    margin: 0;
-    font-size: 1.02rem;
-    line-height: 1.5;
-  }
-
-  /* Time and IP are reference detail, not the story. */
-  .meta {
-    display: flex;
-    gap: 1rem;
-    margin: 0.35rem 0 0;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.78rem;
-    color: var(--muted);
-  }
-
-  .meta span { color: var(--accent); }
 </style>

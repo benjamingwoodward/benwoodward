@@ -14,10 +14,23 @@ export type Visit = {
   client: string;
   path: string;
   referrer: string | null;
+  // Added later, so rows stored before then simply lack them.
+  id?: string;
+  /** Foreground milliseconds, reported by the page as it goes; null until the first report. */
+  duration?: number | null;
+  lat?: number | null;
+  lng?: number | null;
+  city?: string | null;
+  region?: string | null;
+  country?: string | null;
 };
 
 const LIST_KEY = "visits";
 const KEEP = 1000;
+// Durations live in their own keys so a list row never has to be rewritten;
+// they expire on their own long after the list would have dropped the visit.
+const DURATION_KEY = (id: string) => `visit:dur:${id}`;
+const DURATION_TTL = String(90 * 24 * 3600);
 
 function env(...names: string[]) {
   for (const name of names) {
@@ -75,6 +88,11 @@ export async function recordVisit(visit: Visit) {
   }
 }
 
+/** The page reports cumulative foreground time, so the latest value wins. */
+export async function recordDuration(id: string, ms: number) {
+  await command([["SET", DURATION_KEY(id), String(Math.round(ms)), "EX", DURATION_TTL]]);
+}
+
 /** Slack and Discord both accept a bare {text}/{content} JSON post. */
 async function notify(sentence: string) {
   const hook = env("VISITS_WEBHOOK_URL");
@@ -100,11 +118,25 @@ export async function readVisits(limit = 200): Promise<Visit[]> {
   )) as Array<{ result?: string[]; error?: string }> | null;
 
   const rows = body?.[0]?.result ?? [];
-  return rows.flatMap((row) => {
+  const visits = rows.flatMap((row) => {
     try {
       return [JSON.parse(row) as Visit];
     } catch {
       return [];
     }
+  });
+
+  const ids = visits.map((v) => v.id).filter((id): id is string => Boolean(id));
+  if (ids.length === 0) return visits;
+
+  const durations = (await command(
+    [["MGET", ...ids.map(DURATION_KEY)]],
+  )) as Array<{ result?: Array<string | null> }> | null;
+  const byId = new Map(ids.map((id, i) => [id, durations?.[0]?.result?.[i] ?? null]));
+
+  return visits.map((v) => {
+    const raw = v.id ? byId.get(v.id) : null;
+    const ms = raw == null ? null : Number(raw);
+    return { ...v, duration: Number.isFinite(ms as number) ? ms : null };
   });
 }

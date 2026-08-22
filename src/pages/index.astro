@@ -159,15 +159,60 @@ const structuredDataJson = JSON.stringify(structuredData).replace(/</g, "\\u003c
     <Analytics />
     <script is:inline>
       // Pings /api/hit so the server can log the visit; the IP comes from
-      // the request itself, not from anything the browser knows.
-      addEventListener("load", () => {
-        fetch("/api/hit", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ path: location.pathname }),
-          keepalive: true,
-        }).catch(() => {});
-      });
+      // the request itself, not from anything the browser knows. The same id
+      // then carries how long the tab stayed in the foreground.
+      (() => {
+        const id =
+          typeof crypto.randomUUID === "function"
+            ? crypto.randomUUID()
+            : Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+        addEventListener("load", () => {
+          fetch("/api/hit", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ id, path: location.pathname, referrer: document.referrer }),
+            keepalive: true,
+          }).catch(() => {});
+        });
+
+        // Foreground time only: a backgrounded tab isn't a reader.
+        let since = document.visibilityState === "visible" ? performance.now() : null;
+        let active = 0;
+        let reported = 0;
+
+        const settle = () => {
+          if (since == null) return;
+          const now = performance.now();
+          active += now - since;
+          since = now;
+        };
+
+        const report = () => {
+          settle();
+          const duration = Math.round(active);
+          if (duration - reported < 1000) return;
+          reported = duration;
+          // sendBeacon survives the page going away; fetch would not.
+          navigator.sendBeacon(
+            "/api/hit",
+            new Blob([JSON.stringify({ id, duration })], { type: "application/json" }),
+          );
+        };
+
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "hidden") {
+            settle();
+            since = null;
+            report();
+          } else {
+            since = performance.now();
+          }
+        });
+        addEventListener("pagehide", report);
+        // A heartbeat so a tab that never fires pagehide still counts.
+        setInterval(() => since != null && report(), 20000);
+      })();
     </script>
   </head>
   <body>

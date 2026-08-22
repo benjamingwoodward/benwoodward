@@ -1,0 +1,520 @@
+/* Lives alongside the island; the page's <style> is scoped to Astro markup
+   and never reaches React output. Tokens come from global.css. */
+
+/* Shell: three fixed-height columns on desktop — KPIs + locations, the
+   Recent list, then the globe owning the rest. Only the columns scroll. ---- */
+
+.live-view {
+  display: grid;
+  grid-template-columns: minmax(250px, 19rem) minmax(270px, 23rem) minmax(0, 1fr);
+  grid-template-areas: "rail recent stage";
+  height: 100svh;
+}
+
+/* The page itself stays put; the globe never leaves its place. */
+@media (min-width: 900px) {
+  body:has(.live-view) {
+    overflow: hidden;
+  }
+}
+
+.rail {
+  grid-area: rail;
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  min-height: 0;
+  padding: 1.5rem 1.2rem 2rem;
+  overflow-y: auto;
+  scrollbar-width: none;
+  border-right: 1px solid var(--rule);
+}
+
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+/* Recent is a card that fills its column; the list inside it scrolls. */
+.recent {
+  grid-area: recent;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin: 1.5rem 1.2rem 1.5rem 1.2rem;
+  padding: 0;
+  overflow: hidden;
+}
+
+.recent h2 {
+  margin: 0;
+  padding: 0.95rem 1.05rem 0.7rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.recent .feed,
+.recent .empty {
+  padding: 0 1.05rem;
+}
+
+.recent .empty {
+  padding-top: 0.9rem;
+}
+
+.recent .feed {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
+}
+
+.recent .feed li:first-child {
+  border-top: 0;
+}
+
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.panel-head h1 {
+  font-family: "Metamorphous", serif;
+  font-size: 1.8rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.76rem;
+  line-height: 1.25;
+  color: var(--muted);
+  text-align: right;
+}
+
+.pulse::before {
+  content: "";
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.pulse.on {
+  color: var(--accent);
+}
+
+.pulse.on::before {
+  background: var(--accent);
+  animation: pulse 1.8s ease-out infinite;
+}
+
+@keyframes pulse {
+  from { box-shadow: 0 0 0 0 rgba(196, 164, 91, 0.55); }
+  to { box-shadow: 0 0 0 0.6rem rgba(196, 164, 91, 0); }
+}
+
+/* Range tabs ------------------------------------------------------------- */
+
+.ranges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.ranges button {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: border-color 120ms, color 120ms, background 120ms;
+}
+
+.ranges button:hover {
+  color: var(--foreground);
+  border-color: color-mix(in srgb, var(--accent), transparent 40%);
+}
+
+.ranges button.on {
+  color: var(--foreground);
+  background: var(--surface);
+  border-color: var(--accent);
+}
+
+.ranges small {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.7rem;
+  color: var(--accent);
+}
+
+/* Stat tiles ------------------------------------------------------------- */
+
+.tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.tile {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.8rem 0.95rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+}
+
+.tile .label {
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.tile .value {
+  font-size: 1.4rem;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+.tile .note {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+/* Cards ------------------------------------------------------------------ */
+
+.card {
+  padding: 0.95rem 1.05rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+}
+
+.card h2 {
+  margin: 0 0 0.7rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.card .empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+/* Location bars ---------------------------------------------------------- */
+
+.bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.bars button {
+  all: unset;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "label count"
+    "track count";
+  column-gap: 0.75rem;
+  row-gap: 0.3rem;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.bar-label {
+  grid-area: label;
+  font-size: 0.8rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bars button:hover .bar-label {
+  color: var(--foreground);
+}
+
+.bar-track {
+  grid-area: track;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: rgba(220, 232, 219, 0.08);
+  overflow: hidden;
+}
+
+.bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 300ms;
+}
+
+.bar-count {
+  grid-area: count;
+  align-self: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+
+/* Feed ------------------------------------------------------------------- */
+
+.feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.feed li {
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--rule);
+  cursor: default;
+}
+
+.feed li.unlocated {
+  opacity: 0.6;
+}
+
+.sentence {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.sentence code,
+.pin-tip code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.92em;
+  color: var(--accent);
+}
+
+/* Time and IP are reference detail, not the story. */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin: 0.25rem 0 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.meta span {
+  color: var(--accent);
+}
+
+.meta em {
+  font-style: normal;
+  opacity: 0.7;
+}
+
+.meta i {
+  font-style: normal;
+  color: var(--foreground);
+}
+
+/* Globe stage ------------------------------------------------------------ */
+
+.stage {
+  grid-area: stage;
+  position: relative;
+  min-height: 0;
+  background:
+    radial-gradient(ellipse at 50% 55%, rgba(63, 143, 118, 0.12), transparent 62%),
+    var(--background);
+}
+
+.globe-frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.legend {
+  position: absolute;
+  right: 1rem;
+  bottom: 0.9rem;
+  display: flex;
+  gap: 1rem;
+  font-size: 0.74rem;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.legend i {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-right: 0.35rem;
+  border-radius: 50%;
+  vertical-align: -0.02rem;
+}
+
+.legend .dot {
+  background: var(--accent);
+}
+
+.legend .ring {
+  border: 1px solid var(--accent);
+}
+
+/* globe.gl drops its tooltip in the frame as .float-tooltip-kap with its own
+   inline positioning and a plain dark box; the look becomes ours. */
+.globe-frame .float-tooltip-kap {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--foreground);
+  max-width: 22rem;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  white-space: normal;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.pin-tip {
+  padding: 0.7rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--accent), transparent 55%);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--background), transparent 8%);
+  box-shadow: 0 12px 32px var(--shadow);
+  backdrop-filter: blur(6px);
+}
+
+.pin-tip strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+.pin-tip p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.pin-tip ul {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0 0;
+  border-top: 1px solid var(--rule);
+}
+
+.pin-tip li {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pin-tip li span {
+  color: var(--accent);
+}
+
+.pin-tip .more {
+  margin-top: 0.35rem;
+  font-style: italic;
+}
+
+.pin-tip .ips {
+  margin-top: 0.5rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.74rem;
+  color: var(--accent);
+}
+
+/* Below three-column widths: the rail sits above Recent in one left column,
+   the globe keeps the right. Still nothing scrolls but the columns. */
+@media (max-width: 1099px) and (min-width: 900px) {
+  .live-view {
+    grid-template-columns: minmax(330px, 30rem) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+      "rail stage"
+      "recent stage";
+  }
+
+  .rail {
+    max-height: 58svh;
+    border-right: 0;
+    padding-bottom: 0.5rem;
+  }
+
+  .recent {
+    margin: 0 1.2rem 1.5rem;
+  }
+
+  .tiles {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Phones: one column — head, tabs, tiles, then the globe, then the lists.
+   The rail dissolves so its children can interleave with the other columns. */
+@media (max-width: 899px) {
+  .live-view {
+    grid-template-columns: 1fr;
+    grid-template-areas: none;
+    height: auto;
+    gap: 1rem;
+    padding: 1.4rem 1.1rem 3rem;
+  }
+
+  .rail {
+    display: contents;
+  }
+
+  .recent,
+  .stage {
+    grid-area: auto;
+  }
+
+  .panel-head { order: 1; }
+  .ranges { order: 2; }
+  .tiles { order: 3; }
+  .stage { order: 4; }
+  .recent { order: 5; }
+  .rail .card { order: 6; }
+
+  .recent {
+    margin: 0;
+    overflow: visible;
+  }
+
+  .recent .feed {
+    overflow: visible;
+  }
+
+  .stage {
+    aspect-ratio: 1 / 1.02;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .pin-tip li {
+    white-space: normal;
+  }
+}

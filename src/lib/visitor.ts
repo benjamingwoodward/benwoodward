@@ -34,11 +34,34 @@ function countryName(code: string) {
   }
 }
 
-/** "Austin, Texas, United States" — skipping whatever Vercel couldn't resolve. */
-export function describePlace(headers: Headers) {
-  // City arrives percent-encoded: "San%20Francisco".
-  const raw = headers.get("x-vercel-ip-city");
-  const city = raw ? decodeURIComponent(raw) : null;
+export type Place = {
+  city: string | null;
+  region: string | null;
+  country: string | null;
+  lat: number | null;
+  lng: number | null;
+  /** "Austin, Texas, United States" — skipping whatever Vercel couldn't resolve. */
+  place: string;
+};
+
+function coordinate(value: string | null) {
+  if (value == null) return null;
+  const n = Number.parseFloat(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** City arrives percent-encoded ("San%20Francisco"); a malformed one is worth less than no city. */
+function decodeCity(raw: string | null) {
+  if (!raw) return null;
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
+export function parsePlace(headers: Headers): Place {
+  const city = decodeCity(headers.get("x-vercel-ip-city"));
   const regionCode = headers.get("x-vercel-ip-country-region");
   const countryCode = headers.get("x-vercel-ip-country");
 
@@ -50,13 +73,21 @@ export function describePlace(headers: Headers) {
     : !city && regionCode ? regionCode
     : null;
 
-  const parts = [
+  const country = countryCode ? countryName(countryCode) : null;
+  const parts = [city, region, country].filter(Boolean);
+
+  return {
     city,
     region,
-    countryCode ? countryName(countryCode) : null,
-  ].filter(Boolean);
+    country,
+    lat: coordinate(headers.get("x-vercel-ip-latitude")),
+    lng: coordinate(headers.get("x-vercel-ip-longitude")),
+    place: parts.length ? parts.join(", ") : "an unknown location",
+  };
+}
 
-  return parts.length ? parts.join(", ") : "an unknown location";
+export function describePlace(headers: Headers) {
+  return parsePlace(headers).place;
 }
 
 /** "Chrome on macOS" — enough to recognise yourself in the log, no more. */
