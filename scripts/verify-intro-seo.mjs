@@ -63,7 +63,7 @@ try {
   await page.waitForTimeout(500);
   const hookGap = await page.locator('.intro-rescue').evaluate(scene => {
     const tip = scene.querySelector('[data-lift-part="hook"]');
-    const tipPosition = new DOMPoint(0, 6).matrixTransform(tip.getScreenCTM());
+    const tipPosition = new DOMPoint(0, 4).matrixTransform(tip.getScreenCTM());
     const edge = document.querySelector('.intro-curtain').getBoundingClientRect().bottom;
     return Math.abs(tipPosition.y - edge);
   });

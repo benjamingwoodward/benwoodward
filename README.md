@@ -47,6 +47,8 @@ With `npm run dev` running, regenerate the social card and clean Pureflow poster
 
 Run `npm run test:intro-seo` against the preview for opening-sequence, fallback, metadata, schema, favicon, and text-color checks. Use `BRAND_BROWSER=webkit` and `WEBKIT_PATH` to select an installed WebKit browser. `npm run render:social` regenerates only the social image. See `SEO_REVIEW.md` for SEO scope and limits.
 
+Run `npm run test:intro-first-frame` to verify the server-rendered logo stays undrawn until its reveal starts, and `npm run test:intro-lift` to sample hook attachment, the small curl below the panel, consistent strokes, delayed SVG repaint and viewport changes. Both support Chromium/WebKit. The helicopter shares the curtain's moving layer so it cannot drift beneath the edge when mobile painting lags.
+
 Run `npm run test:footer-age` for the footer reveal, UTC age arithmetic, live second ticks, digit rollover, timezone independence, responsive layouts and static fallbacks. It supports Chromium/WebKit and writes evidence to `/tmp/bio-footer-age-<engine>`.
 
 Run `npm run test:pureflow` for visible-only media loading, one-shot playback, alpha transparency, final-frame hold, five widths and poster fallbacks. It supports Chromium/WebKit and writes evidence to `/tmp/bio-pureflow-<engine>`.

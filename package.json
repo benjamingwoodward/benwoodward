@@ -11,6 +11,8 @@
     "test:footer-age": "node scripts/verify-footer-age.mjs",
     "test:pureflow": "node scripts/verify-pureflow.mjs",
     "test:intro-seo": "node scripts/verify-intro-seo.mjs",
+    "test:intro-first-frame": "node scripts/verify-intro-first-frame.mjs",
+    "test:intro-lift": "node scripts/verify-intro-lift.mjs",
     "render:social": "node scripts/render-social-card.mjs",
     "render:previews": "node scripts/render-previews.mjs"
   },

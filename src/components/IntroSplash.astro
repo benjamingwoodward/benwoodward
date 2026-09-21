@@ -1,8 +1,14 @@
 ---
 import reveal from "../../public/brand/bw-reveal.svg?raw";
 import { HelicopterArtwork } from "./machines/cash-helicopter";
-// Keep these SVG IDs separate from the standalone preview or any future header mark.
-const introMark = reveal.replaceAll("bw-", "intro-bw-").replaceAll("#142219", "#000000");
+// The standalone SVG defaults to a complete static mark. The intro instead
+// starts masked in server HTML and uses a single, explicitly started WAAPI clock;
+// no SMIL reset can briefly expose the finished logo before its first frame.
+const introMark = reveal.replaceAll("bw-", "intro-bw-").replaceAll("#142219", "#000000")
+  .replace(/<(?:animate|set)\b[^>]*\/>/g, "")
+  .replaceAll('stroke-dashoffset="0"', 'stroke-dashoffset="1"')
+  .replace('<g fill="none" stroke="white"', '<g opacity="0" fill="none" stroke="white"')
+  .replace('id="intro-bw-w-growth"', 'id="intro-bw-w-growth" visibility="hidden"');
 ---
 <dialog id="site-intro" class="intro-screen" aria-label="Introduction to Ben Woodward" tabindex="-1" autofocus>
   <div class="intro-curtain">
@@ -10,12 +16,14 @@ const introMark = reveal.replaceAll("bw-", "intro-bw-").replaceAll("#142219", "#
     <div class="intro-center">
       <div class="intro-logo" aria-hidden="true" set:html={introMark} />
     </div>
+    <!-- The panel and aircraft share the same translated layer. SVG repaint
+         delays on mobile cannot leave the hook behind the moving orange edge. -->
+    <svg class="intro-rescue" aria-hidden="true" focusable="false" fill="none">
+      <g class="intro-flight" visibility="hidden">
+        <g class="intro-aircraft-scale"><g transform="translate(-257 -97)"><HelicopterArtwork sharedCargo endpointGeometry /></g></g>
+      </g>
+    </svg>
   </div>
-  <svg class="intro-rescue" aria-hidden="true" focusable="false" fill="none">
-    <g class="intro-flight" visibility="hidden">
-      <g class="intro-aircraft-scale"><g transform="translate(-257 -97)"><HelicopterArtwork sharedCargo endpointGeometry /></g></g>
-    </g>
-  </svg>
 </dialog>
 <script is:inline>
   (() => {
@@ -27,23 +35,29 @@ const introMark = reveal.replaceAll("bw-", "intro-bw-").replaceAll("#142219", "#
     const animations = [];
     const timers = [];
     let finished = false;
+    let viewportWidth = 0;
+    let viewportHeight = 0;
     const finish = (moveFocus = false) => {
       if (finished) return;
       finished = true;
       timers.forEach(clearTimeout);
       animations.forEach(animation => animation.cancel());
-      logo.pauseAnimations?.();
       delete root.dataset.intro;
       if (dialog.open) dialog.close();
       motion.removeEventListener("change", preferenceChanged);
       document.removeEventListener("visibilitychange", visibilityChanged);
       window.removeEventListener("pagehide", leave);
-      window.removeEventListener("resize", leave);
+      window.removeEventListener("resize", resized);
       if (moveFocus) document.getElementById("main-content")?.focus({ preventScroll: true });
     };
     const preferenceChanged = () => { if (motion.matches) finish(); };
     const visibilityChanged = () => { if (document.hidden) finish(); };
     const leave = () => finish();
+    const resized = () => {
+      // Mobile browsers can dispatch a queued startup resize after the viewport
+      // is already measured. Only a real size change invalidates the geometry.
+      if (dialog.clientWidth !== viewportWidth || dialog.clientHeight !== viewportHeight) finish();
+    };
     dialog.addEventListener("cancel", event => { event.preventDefault(); finish(true); });
     dialog.addEventListener("close", () => finish());
     dialog.addEventListener("keydown", event => {
@@ -53,22 +67,25 @@ const introMark = reveal.replaceAll("bw-", "intro-bw-").replaceAll("#142219", "#
     document.addEventListener("visibilitychange", visibilityChanged);
     window.addEventListener("pagehide", leave);
     // A viewport change should reveal the site rather than detach the hook.
-    window.addEventListener("resize", leave);
+    window.addEventListener("resize", resized);
     try {
-      if (motion.matches || typeof logo.setCurrentTime !== "function") { finish(); return; }
+      if (motion.matches || typeof logo.animate !== "function") { finish(); return; }
       dialog.showModal();
       root.dataset.intro = "playing";
-      logo.setCurrentTime(0);
-      logo.unpauseAnimations();
       const curtain = dialog.querySelector(".intro-curtain");
       const scene = dialog.querySelector(".intro-rescue");
       const flight = scene.querySelector(".intro-flight");
       const width = dialog.clientWidth;
       const height = dialog.clientHeight;
+      viewportWidth = width;
+      viewportHeight = height;
       const scale = Math.min(.95, Math.max(.64, width / 1400));
       const x = width * .65;
       const y = height - 155 * scale;
-      const cableLength = (height - y) / scale - 6;
+      // The edge sits inside the hook's bend, not at its lowest outside point.
+      // Its small curl peeks underneath the orange, visibly catching the panel.
+      const hookContact = 4;
+      const cableLength = (height - y) / scale - hookContact;
       const distance = height + 24;
       scene.setAttribute("viewBox", `0 0 ${width} ${height}`);
       scene.querySelector(".intro-aircraft-scale").setAttribute("transform", `scale(${scale})`);
@@ -80,12 +97,34 @@ const introMark = reveal.replaceAll("bw-", "intro-bw-").replaceAll("#142219", "#
         return animation;
       };
       const part = name => scene.querySelector(`[data-lift-part="${name}"]`);
+      // Preserve the approved 2.4-second drawing sequence, but start all three
+      // mask tracks together from the same hidden state already present in HTML.
+      const logoTiming = { duration: 2400 };
+      const logoTracks = [
+        animate(logo.querySelector("#intro-bw-growth > g"), [
+          { opacity: 0 }, { opacity: 0, offset: .02 },
+          { opacity: 1, offset: .12 }, { opacity: 1 },
+        ], logoTiming),
+        animate(logo.querySelector("#intro-bw-b-growth"), [
+          { strokeDashoffset: "1" },
+          { strokeDashoffset: "1", offset: .025, easing: "cubic-bezier(.42,0,.35,1)" },
+          { strokeDashoffset: "0", offset: .65 }, { strokeDashoffset: "0" },
+        ], logoTiming),
+        animate(logo.querySelector("#intro-bw-w-growth"), [
+          { strokeDashoffset: "1", visibility: "hidden", easing: "steps(1,end)" },
+          { strokeDashoffset: "1", visibility: "visible", offset: .3591, easing: "cubic-bezier(.42,0,.22,1)" },
+          { strokeDashoffset: "0", visibility: "visible", offset: .97 },
+          { strokeDashoffset: "0", visibility: "visible" },
+        ], logoTiming),
+      ];
+      const logoClock = document.timeline.currentTime;
+      logoTracks.forEach(animation => { animation.startTime = logoClock; });
       // Animate actual dimensions rather than scaling a one-unit stroke: extreme
       // scale transforms can rasterize a faint extension past the winch pivot.
       const cable = part("cable");
       const rotor = part("rotor").querySelector("rect");
       // This timeline overlaps the logo reveal. The winch settles before it
-      // lowers; the hook's tip ends exactly at the orange panel's lower edge.
+      // lowers; the hook's bend catches the orange panel's lower edge.
       animate(flight, [
         { transform: `translate(${-300 * scale}px, ${y - 45 * scale}px)` },
         { transform: `translate(${x}px, ${y}px)` },
@@ -119,7 +158,7 @@ const introMark = reveal.replaceAll("bw-", "intro-bw-").replaceAll("#142219", "#
           const drift = Math.min(width * .12, 150) * smooth(t);
           const stretch = interpolate(t, [[0, 0], [.16, 22 * scale], [.26, 8 * scale], [.65, 45 * scale], [1, 45 * scale]]);
           const vertical = height - y + stretch;
-          const length = Math.hypot(drift, vertical) / scale - 6;
+          const length = Math.hypot(drift, vertical) / scale - hookContact;
           const angle = Math.atan2(drift, vertical) * 180 / Math.PI;
           // Suggest effort without rigidly matching the cable: most of the
           // lift stays vertical, with a restrained bank and a soft tug/settle.
@@ -131,14 +170,15 @@ const introMark = reveal.replaceAll("bw-", "intro-bw-").replaceAll("#142219", "#
           frames.map(frame => ({ offset: frame.offset, transform: value(frame) })), liftOptions);
         const panelLift = track(curtain, f => `translateY(${f.panelY}px)`);
         const lifts = [panelLift,
-          track(flight, f => `translate(${x + f.drift}px, ${y + f.panelY - f.stretch}px)`),
+          track(flight, f => `translate(${x + f.drift}px, ${y - f.stretch}px)`),
           track(part("airframe"), f => `translateY(8px) rotate(${f.bank}deg) translateY(-8px)`),
           track(part("rig"), f => `rotate(${f.angle}deg)`),
           animate(cable, frames.map(f => ({ offset: f.offset, height: `${f.length}px` })), liftOptions),
           track(part("hook"), f => `translateY(${f.length}px)`),
         ];
-        // Solve the diagonal cable back to a fixed point on the straight edge.
-        // Every track uses one clock, including the tug, bank, and winch payout.
+        // The hook is solved at the curtain's local lower edge. Only its shared
+        // parent carries panelY, so even a delayed SVG paint stays attached.
+        // Relative drift, bank and cable payout still use one synchronized clock.
         const clock = document.timeline.currentTime;
         lifts.forEach(animation => { animation.startTime = clock; });
         panelLift.onfinish = () => finish();
@@ -173,7 +213,7 @@ const introMark = reveal.replaceAll("bw-", "intro-bw-").replaceAll("#142219", "#
   .intro-screen[open] { display: grid; place-items: center; }
   .intro-screen::backdrop { background: transparent; }
   .intro-curtain { position: absolute; inset: 0; padding: 28px; display: grid; place-items: center; background: #ff4f1f; will-change: transform; }
-  .intro-rescue { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .intro-rescue { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
   .intro-rescue [data-helicopter-center-pole] { fill: #fff; }
   .intro-rescue [data-lift-part] { transform-box: view-box; transform-origin: 0 0; }
   .intro-waves { position: absolute; inset: 0; pointer-events: none; opacity: .18; mask-image: radial-gradient(ellipse at center, transparent 8%, #000 65%); }

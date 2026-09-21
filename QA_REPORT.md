@@ -124,3 +124,13 @@ The latest intro/SEO suite passes in Chromium and WebKit, all 16 prior browser g
 - Enlarged captures reproduced a faint extension above the winch circle from the stretched cable. Equal CSS stroke widths did not cover the cable's extreme vertical scaling or the rotor's horizontal squeezing.
 - The intro now animates the cable's real height and the rotor blade's real width/position. Neither uses an unequal scale transform. The cable begins at the circle center; the old moving-edge clip workaround was removed.
 - Sampled the full lift and rotor cycle at 390×600 and 1440×900 with 2× pixel density in Chromium and WebKit. Cable-to-winch error was below 0.001px, cable-to-hook error below 0.001px, and rendered stroke width deviation below 0.001px. Enlarged winch captures in both engines show no thin overrun, and the lower hook also renders cleanly without clipping.
+
+## Mobile hook attachment and first-paint correction
+
+- Nested the aircraft in the orange curtain's translated layer. The hook catches the panel inside its bend, leaving only the small curl underneath (about 1.4–2.2 CSS pixels on phone widths), rather than dangling below it. Relative bank, tug and cable payout are preserved; total intro duration is unchanged.
+- The intro mark now starts undrawn in server HTML. Three synchronized native animation tracks retain the approved reveal without resetting a separate SVG clock or briefly painting a completed logo. The standalone/footer marks are unchanged.
+- Chromium and WebKit lift checks passed at 360×600, 390×844, 428×926, 768×1000 and 1440×900; phone contexts emulate touch/mobile with 3× density. Across the lift, hook contact error stayed below 0.007px. Advancing only the curtain while freezing relative SVG motion kept contact error below 0.001px. Uniform rendered strokes and both cable endpoints also passed.
+- Queued mobile startup resize events no longer cancel the intro when dimensions have not changed. A genuine viewport change still exits safely; both cases were verified. Escape remains available.
+- Enlarged hook captures and mobile compositions were visually reviewed. Evidence: `/tmp/helicopter-hook-webkit-390.png` and `/tmp/helicopter-tug-webkit-390.png`. This is browser emulation, not a physical iPhone test.
+- First-frame pixel checks passed in Chromium and WebKit at 390px and 1440px: no black logo pixels before initialization or at time zero, a partial mark during drawing, and a complete opaque mark afterward. The intro/SEO regression suite also passed in both engines, including repeated reloads, tracking, focus, Escape and failure fallbacks.
+- Astro check/build passed with the same two existing hints and private-globe bundle-size warning.

@@ -4,14 +4,17 @@ import { chromium, webkit } from 'playwright';
 const engine = process.env.BRAND_BROWSER || 'chromium';
 const browser = await (engine === 'webkit' ? webkit : chromium).launch({ executablePath: engine === 'webkit' ? process.env.WEBKIT_PATH : process.env.CHROMIUM_PATH });
 try {
-  for (const width of [390, 1440]) {
-    const context = await browser.newContext({ viewport: { width, height: width === 390 ? 600 : 900 }, deviceScaleFactor: 2 });
+  for (const [width, height] of [[360, 600], [390, 844], [428, 926], [768, 1000], [1440, 900]]) {
+    const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: width < 500 ? 3 : 2, isMobile: width < 500, hasTouch: width < 500 });
     await context.route('**/api/hit', route => route.fulfill({ status: 204 }));
     const page = await context.newPage();
     await page.goto(process.env.PREVIEW_URL || 'http://127.0.0.1:4321/');
     await page.waitForFunction(() => document.documentElement.dataset.intro === 'leaving');
+    await page.evaluate(() => window.dispatchEvent(new Event('resize')));
+    assert.equal(await page.locator('#site-intro').evaluate(dialog => dialog.open), true, 'A redundant mobile resize must not dismiss the intro');
     const result = await page.evaluate(() => {
       const intro = document.querySelector('#site-intro');
+      const curtain = intro.querySelector('.intro-curtain');
       const tracks = intro.getAnimations({ subtree: true }).filter(animation => animation.effect.getTiming().duration === 2800);
       tracks.forEach(animation => animation.pause());
       const rotor = intro.querySelector('[data-lift-part="rotor"] rect').getAnimations()[0];
@@ -26,12 +29,17 @@ try {
       let cableHookGap = 0;
       let winchGap = 0;
       let strokeError = 0;
+      let curlBelowMin = Infinity;
+      let curlBelowMax = 0;
       for (let time = 0; time < 2800; time += 31) {
         tracks.forEach(animation => { animation.currentTime = time; });
         rotor.currentTime = time % 160;
-        const tip = new DOMPoint(0, 6).matrixTransform(part('hook').getScreenCTM());
+        const tip = new DOMPoint(0, 4).matrixTransform(part('hook').getScreenCTM());
         const edge = intro.querySelector('.intro-curtain').getBoundingClientRect();
         hookGap = Math.max(hookGap, Math.abs(tip.y - edge.bottom), Math.abs(tip.x - intro.clientWidth * .65));
+        const curlBelow = part('hook-tip').getBoundingClientRect().bottom - edge.bottom;
+        curlBelowMin = Math.min(curlBelowMin, curlBelow);
+        curlBelowMax = Math.max(curlBelowMax, curlBelow);
         const cable = part('cable');
         const matrix = cable.getScreenCTM();
         const bounds = cable.getBBox();
@@ -54,17 +62,35 @@ try {
         }
         if (time > 1300) bankError = Math.max(bankError, Math.abs(angle('airframe') - angle('rig') * .55));
       }
+      // Simulate mobile compositor frames running ahead of an SVG repaint:
+      // freeze all relative helicopter motion, then advance only the panel.
+      // The hook must remain attached without relying on matching paint clocks.
+      tracks.forEach(animation => { animation.currentTime = 900; });
+      const panelTrack = tracks.find(animation => animation.effect.target === curtain);
+      let delayedPaintGap = 0;
+      for (const time of [0, 450, 900, 1540, 2150, 2650]) {
+        panelTrack.currentTime = time;
+        const tip = new DOMPoint(0, 4).matrixTransform(part('hook').getScreenCTM());
+        delayedPaintGap = Math.max(delayedPaintGap, Math.abs(tip.y - curtain.getBoundingClientRect().bottom));
+      }
       tracks.forEach(animation => { animation.currentTime = 1540; });
       return {
         tracks: tracks.length,
         hookGap,
+        delayedPaintGap,
+        sharedLayer: intro.querySelector('.intro-rescue').parentElement === curtain,
+        curlBelowMin, curlBelowMax,
         bankError,
         bank: angle('airframe'),
         cableHookGap, winchGap, strokeError,
       };
     });
     assert.equal(result.tracks, 6);
+    assert.equal(result.sharedLayer, true, 'The aircraft must travel inside the moving orange curtain');
     assert.ok(result.hookGap < 1, `Detached hook: ${result.hookGap}px`);
+    assert.ok(result.delayedPaintGap < 1, `Hook drift when SVG painting lags: ${result.delayedPaintGap}px`);
+    assert.ok(result.curlBelowMin > .5 && result.curlBelowMax < 5, `Only the small curl should wrap below the panel: ${result.curlBelowMin}–${result.curlBelowMax}px`);
+    assert.equal(await page.locator('.intro-rescue').evaluate(el => getComputedStyle(el).overflow), 'visible', 'Do not clip the curl at the curtain edge');
     assert.ok(result.cableHookGap < .01, `Cable must terminate at the hook: ${result.cableHookGap}px`);
     assert.ok(result.winchGap < .01, `Cable must start at the winch center: ${result.winchGap}px`);
     assert.ok(result.strokeError < .01, `Rendered strokes must stay uniform through transforms: ${result.strokeError}px`);
@@ -73,8 +99,13 @@ try {
     await page.screenshot({ path: `/tmp/helicopter-tug-${engine}-${width}.png` });
     const winch = await page.locator('.intro-rescue [data-lift-part="winch"]').boundingBox();
     await page.screenshot({ path: `/tmp/helicopter-winch-${engine}-${width}.png`, clip: { x: winch.x - 60, y: winch.y - 70, width: 160, height: 180 } });
+    const hook = await page.locator('.intro-rescue [data-lift-part="hook"]').boundingBox();
+    await page.screenshot({ path: `/tmp/helicopter-hook-${engine}-${width}.png`, clip: { x: hook.x - 35, y: hook.y - 35, width: 80, height: 80 } });
     console.log(`PASS ${width}px`, result);
-    await page.keyboard.press('Escape');
+    if (width === 390) {
+      await page.setViewportSize({ width: height, height: width });
+      await page.waitForFunction(() => !document.querySelector('#site-intro').open);
+    } else await page.keyboard.press('Escape');
     assert.equal(await page.locator('#site-intro').evaluate(dialog => dialog.open), false);
     await context.close();
   }
