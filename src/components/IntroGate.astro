@@ -1,0 +1,30 @@
+<script is:inline>
+  (() => {
+    const root = document.documentElement;
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
+    const navigation = performance.getEntriesByType("navigation")[0];
+    const directAnchor = location.hash && navigation?.type !== "reload";
+    if (motion.matches || directAnchor || navigation?.type === "back_forward" ||
+        typeof HTMLDialogElement === "undefined" || !Element.prototype.animate) return;
+    root.dataset.intro = "pending";
+    // Independent escape hatch: even a failed body script cannot strand the site.
+    const release = () => {
+      delete root.dataset.intro;
+      const dialog = document.getElementById("site-intro");
+      if (dialog?.open) dialog.close();
+    };
+    setTimeout(release, 8000);
+    addEventListener("pageshow", event => { if (event.persisted) release(); });
+  })();
+</script>
+<style is:global>
+  html { scrollbar-gutter: stable; }
+  html[data-intro] { overflow: hidden; }
+  html[data-intro="pending"]::before {
+    content: ""; position: fixed; inset: 0; z-index: 1000; background: #ff4f1f;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html[data-intro] { overflow: auto; }
+    html[data-intro="pending"]::before { display: none; }
+  }
+</style>

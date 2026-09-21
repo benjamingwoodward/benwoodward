@@ -82,10 +82,9 @@
 }
 
 .panel-head h1 {
-  font-family: "Metamorphous", serif;
+  font-family: var(--font);
   font-size: 1.8rem;
   font-weight: 400;
-  letter-spacing: 0.02em;
   margin: 0;
 }
 
@@ -109,7 +108,7 @@
 }
 
 .pulse.on {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .pulse.on::before {
@@ -118,7 +117,7 @@
 }
 
 @keyframes pulse {
-  from { box-shadow: 0 0 0 0 rgba(196, 164, 91, 0.55); }
+  from { box-shadow: 0 0 0 0 rgba(255, 79, 31, 0.3); }
   to { box-shadow: 0 0 0 0.6rem rgba(196, 164, 91, 0); }
 }
 
@@ -131,12 +130,13 @@
 }
 
 .ranges button {
+  min-height: 44px;
   display: inline-flex;
   align-items: baseline;
   gap: 0.4rem;
   padding: 0.35rem 0.75rem;
   border: 1px solid var(--rule);
-  border-radius: 999px;
+  border-radius: 2px;
   background: transparent;
   color: var(--muted);
   font: inherit;
@@ -153,13 +153,13 @@
 .ranges button.on {
   color: var(--foreground);
   background: var(--surface);
-  border-color: var(--accent);
+  border-color: var(--accent-text);
 }
 
 .ranges small {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.7rem;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* Stat tiles ------------------------------------------------------------- */
@@ -176,7 +176,7 @@
   padding: 0.8rem 0.95rem;
   background: var(--surface);
   border: 1px solid var(--rule);
-  border-radius: 8px;
+  border-radius: 2px;
 }
 
 .tile .label {
@@ -201,14 +201,13 @@
   padding: 0.95rem 1.05rem 1rem;
   background: var(--surface);
   border: 1px solid var(--rule);
-  border-radius: 8px;
+  border-radius: 2px;
 }
 
 .card h2 {
   margin: 0 0 0.7rem;
   font-size: 0.92rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-weight: 400;
 }
 
 .card .empty {
@@ -229,6 +228,7 @@
 
 .bars button {
   all: unset;
+  min-height: 44px;
   display: grid;
   grid-template-columns: 1fr auto;
   grid-template-areas:
@@ -257,15 +257,15 @@
 .bar-track {
   grid-area: track;
   height: 0.45rem;
-  border-radius: 999px;
-  background: rgba(220, 232, 219, 0.08);
+  border-radius: 2px;
+  background: var(--rule);
   overflow: hidden;
 }
 
 .bar-fill {
   display: block;
   height: 100%;
-  border-radius: 999px;
+  border-radius: 2px;
   background: var(--accent);
   transition: width 300ms;
 }
@@ -275,7 +275,7 @@
   align-self: center;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.78rem;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* Feed ------------------------------------------------------------------- */
@@ -306,7 +306,7 @@
 .pin-tip code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.92em;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* Time and IP are reference detail, not the story. */
@@ -321,7 +321,7 @@
 }
 
 .meta span {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .meta em {
@@ -341,7 +341,7 @@
   position: relative;
   min-height: 0;
   background:
-    radial-gradient(ellipse at 50% 55%, rgba(63, 143, 118, 0.12), transparent 62%),
+    radial-gradient(ellipse at 50% 55%, rgba(20, 34, 25, 0.04), transparent 62%),
     var(--background);
 }
 
@@ -383,7 +383,7 @@
 /* globe.gl drops its tooltip in the frame as .float-tooltip-kap with its own
    inline positioning and a plain dark box; the look becomes ours. */
 .globe-frame .float-tooltip-kap {
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 0.82rem;
   line-height: 1.4;
   color: var(--foreground);
@@ -399,7 +399,7 @@
 .pin-tip {
   padding: 0.7rem 0.85rem;
   border: 1px solid color-mix(in srgb, var(--accent), transparent 55%);
-  border-radius: 8px;
+  border-radius: 2px;
   background: color-mix(in srgb, var(--background), transparent 8%);
   box-shadow: 0 12px 32px var(--shadow);
   backdrop-filter: blur(6px);
@@ -407,7 +407,7 @@
 
 .pin-tip strong {
   display: block;
-  font-weight: 600;
+  font-weight: 400;
   margin-bottom: 0.15rem;
 }
 
@@ -430,7 +430,7 @@
 }
 
 .pin-tip li span {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .pin-tip .more {
@@ -442,7 +442,7 @@
   margin-top: 0.5rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.74rem;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* Below three-column widths: the rail sits above Recent in one left column,
@@ -510,7 +510,7 @@
   .stage {
     aspect-ratio: 1 / 1.02;
     border: 1px solid var(--rule);
-    border-radius: 10px;
+    border-radius: 2px;
     overflow: hidden;
   }
 
@@ -518,3 +518,7 @@
     white-space: normal;
   }
 }
+
+.bars button:focus-visible { outline: 2px solid var(--foreground); outline-offset: 4px; }
+.live-view { font-family: var(--font); }
+@media (prefers-reduced-motion: reduce) { .pulse::before { animation: none; } }

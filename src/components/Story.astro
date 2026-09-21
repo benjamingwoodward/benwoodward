@@ -1,0 +1,72 @@
+---
+import { chapters } from "../data/profile";
+import Photo from "./Photo.astro";
+import PureflowPreview from "./PureflowPreview.astro";
+---
+<section class="story-section section-pad container" id="story" aria-labelledby="story-title">
+  <div class="section-heading"><h2 id="story-title">The story so far.</h2></div>
+  <ol class="story-timeline">
+    {chapters.map(chapter => <li class={`story-card story-${chapter.id}`}>
+      <span class="story-age"><span class="sr-only">{chapter.age === "Now" ? "" : "Age "}</span>{chapter.age}</span>
+      <article class:list={["chapter-content", { "chapter-text-only": !chapter.photos.length && chapter.id !== "software" }]} aria-labelledby={`chapter-${chapter.id}`}>
+        <div class="story-copy"><h3 id={`chapter-${chapter.id}`}>{chapter.title}</h3><p>{chapter.text}</p></div>
+        {chapter.photos.length > 0 && <div class={`story-collage story-collage-${chapter.photos.length}`}>
+          {chapter.photos.map((photo, index) => <a href={`/${photo.file}`} class="story-photo" data-gallery-open={chapter.id} data-gallery-index={index} aria-label={`Enlarge photograph: ${photo.caption}`}>
+            <Photo file={photo.file} alt={photo.caption} sizes={chapter.photos.length === 1 ? "(max-width: 600px) 70vw, (max-width: 800px) 72vw, 400px" : "(max-width: 600px) 45vw, (max-width: 800px) 40vw, (max-width: 1400px) 24vw, 340px"} />
+          </a>)}
+        </div>}
+        {chapter.id === "software" && <PureflowPreview />}
+      </article>
+    </li>)}
+  </ol>
+</section>
+<dialog class="media-dialog gallery-dialog" id="photo-gallery" aria-labelledby="gallery-title">
+  <div class="dialog-top"><h2 id="gallery-title">Photographs</h2><button type="button" data-gallery-close aria-label="Close photographs">Close <span aria-hidden="true">×</span></button></div>
+  <div class="gallery-groups">
+    {chapters.filter(chapter => chapter.photos.length).map(chapter => <div data-gallery-group={chapter.id} hidden>
+      {chapter.photos.map((photo, index) => <figure data-gallery-slide data-caption={photo.caption} hidden={index !== 0}><Photo file={photo.file} alt={photo.caption} sizes="(max-width: 1000px) 90vw, 920px" /><figcaption>{photo.caption}</figcaption></figure>)}
+    </div>)}
+  </div>
+  <div class="gallery-controls"><button type="button" data-gallery-prev aria-label="Previous photograph">←</button><p data-gallery-count aria-live="polite" aria-atomic="true"></p><button type="button" data-gallery-next aria-label="Next photograph">→</button></div>
+</dialog>
+<script>
+  const gallery = document.querySelector<HTMLDialogElement>("#photo-gallery");
+  let opener: HTMLElement | null = null;
+  let slides: HTMLElement[] = [];
+  let active = 0;
+  const previous = gallery?.querySelector<HTMLButtonElement>("[data-gallery-prev]");
+  const next = gallery?.querySelector<HTMLButtonElement>("[data-gallery-next]");
+  const show = (index: number) => {
+    active = (index + slides.length) % slides.length;
+    slides.forEach((slide, i) => { slide.hidden = i !== active; });
+    const count = gallery?.querySelector("[data-gallery-count]");
+    if (count) count.textContent = `${active + 1} / ${slides.length}`;
+    if (previous) previous.disabled = slides.length < 2;
+    if (next) next.disabled = slides.length < 2;
+  };
+  document.querySelectorAll<HTMLAnchorElement>("[data-gallery-open]").forEach(link => link.addEventListener("click", event => {
+    if (!gallery || typeof gallery.showModal !== "function") return;
+    event.preventDefault(); opener = link;
+    gallery.querySelectorAll<HTMLElement>("[data-gallery-group]").forEach(group => {
+      group.hidden = group.dataset.galleryGroup !== link.dataset.galleryOpen;
+      if (!group.hidden) slides = Array.from(group.querySelectorAll<HTMLElement>("[data-gallery-slide]"));
+    });
+    show(Number(link.dataset.galleryIndex ?? 0)); gallery.showModal();
+  }));
+  previous?.addEventListener("click", () => show(active - 1));
+  next?.addEventListener("click", () => show(active + 1));
+  gallery?.querySelector("[data-gallery-close]")?.addEventListener("click", () => gallery.close());
+  gallery?.addEventListener("click", event => { if (event.target === gallery) gallery.close(); });
+  gallery?.addEventListener("keydown", event => {
+    if (event.key === "Tab") {
+      const controls = Array.from(gallery.querySelectorAll<HTMLButtonElement>("button:not(:disabled)"));
+      const first = controls[0];
+      const last = controls.at(-1);
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    }
+    if (event.key === "ArrowLeft") { event.preventDefault(); show(active - 1); }
+    if (event.key === "ArrowRight") { event.preventDefault(); show(active + 1); }
+  });
+  gallery?.addEventListener("close", () => opener?.focus());
+</script>

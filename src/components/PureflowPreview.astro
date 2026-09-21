@@ -1,0 +1,16 @@
+---
+import { Image } from "astro:assets";
+import poster from "../../public/pureflow-poster.jpg";
+---
+<figure class="pureflow-preview" data-pureflow-preview>
+  <Image src={poster} alt="The Pureflow website displayed on a laptop, showing its water-health report software" widths={[320, 640, 1080]} sizes="(max-width: 800px) 75vw, 40vw" format="webp" loading="lazy" decoding="async" />
+  <video muted playsinline preload="none" width="1080" height="1080" aria-hidden="true" tabindex="-1"></video>
+  <template>
+    <source src="/pureflow-enter-alpha.mov" type='video/quicktime; codecs="hvc1"' />
+    <source src="/pureflow-enter.webm" type="video/webm" />
+  </template>
+</figure>
+<script>
+  import { mountPureflowPreview } from "../lib/pureflow-preview";
+  document.querySelectorAll<HTMLElement>("[data-pureflow-preview]").forEach(mountPureflowPreview);
+</script>

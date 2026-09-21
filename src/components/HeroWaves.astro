@@ -1,0 +1,22 @@
+<div id="hero-waves" class="hero-waves" aria-hidden="true"></div>
+<script>
+  const host = document.querySelector<HTMLElement>("#hero-waves");
+  const intro = document.querySelector<HTMLDialogElement>("#site-intro");
+  let dispose: (() => void) | undefined;
+  let cancelled = false;
+  const mount = async () => {
+    if (!host || cancelled || !("gpu" in navigator) || !navigator.gpu) return;
+    try {
+      const { mountHeroWaves } = await import("./effects/hero-waves");
+      if (!cancelled && host.isConnected) dispose = mountHeroWaves(host);
+    } catch { /* Decorative enhancement: the clean white hero remains intact. */ }
+  };
+  const schedule = () => {
+    const idle = (window as unknown as { requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number }).requestIdleCallback;
+    if (idle) idle(() => void mount(), { timeout: 500 });
+    else setTimeout(() => void mount(), 0);
+  };
+  if (intro?.open) intro.addEventListener("close", schedule, { once: true });
+  else schedule();
+  window.addEventListener("pagehide", () => { cancelled = true; dispose?.(); }, { once: true });
+</script>

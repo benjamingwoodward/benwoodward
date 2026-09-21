@@ -1,0 +1,17 @@
+---
+import { work } from "../data/profile";
+import WorkMachine from "./machines/WorkMachine";
+---
+<section class="work-section section-pad" id="work" aria-labelledby="work-title">
+  <div class="container">
+    <div class="section-heading"><h2 id="work-title">Track record.</h2></div>
+    <div class="work-grid">
+      {work.map((item, index) => <article class:list={["work-card", { "work-card-large": index < 2 }]} aria-labelledby={`work-${item.id}`}>
+        <div class="work-copy"><h3 id={`work-${item.id}`}>{item.title}</h3><p class="work-metric">{item.metric}</p><p class="work-description">{item.description}</p>
+          {item.href && <a class="text-link small-link" href={item.href} target={item.href.startsWith("https") ? "_blank" : undefined} rel={item.href.startsWith("https") ? "noopener noreferrer" : undefined}>{item.action}<span aria-hidden="true">↗</span></a>}
+        </div>
+        <WorkMachine illustration={item.illustration} client:visible={{ rootMargin: "160px" }} />
+      </article>)}
+    </div>
+  </div>
+</section>

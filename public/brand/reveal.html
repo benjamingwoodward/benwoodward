@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>BW logo reveal</title>
+<style>
+  @font-face{font-family:Lausanne;src:url('/fonts/TWKLausanne-400.woff2') format('woff2');font-display:swap}
+  *{box-sizing:border-box}body{margin:0;background:#fafbf9;color:#142219;font-family:Lausanne,Arial,sans-serif}
+  main{min-height:100svh;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:32px 24px;gap:44px}
+  .stage{width:min(600px,100%);aspect-ratio:1.846;display:grid;place-items:center}.stage svg{width:100%;height:auto;display:block}
+  .controls{display:flex;align-items:center;gap:24px}button,a{font:inherit;font-size:15px}button{border:0;border-radius:7px;padding:13px 23px;min-height:46px;background:#ff4f1f;color:#142219;cursor:pointer}button:disabled{background:#e9ece8;cursor:default}a{color:inherit;padding:14px 0;text-underline-offset:4px}
+  button:focus-visible,a:focus-visible{outline:2px solid #142219;outline-offset:5px}p{font-size:14px;color:#657067;margin:0}button[hidden]{display:none}
+</style><noscript><style>.stage .bw-motion{display:none}.stage .bw-rest{display:inline}</style></noscript></head>
+<body><main><div class="stage"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-6 7.3205 473.1932 256.3154" fill="none" role="img" aria-labelledby="bw-reveal-title bw-reveal-description">
+  <title id="bw-reveal-title">Ben Woodward — BW reveal</title>
+  <desc id="bw-reveal-description">The B grows into place, followed by a continuous sweep through the W. Plays once, then holds the finished monogram.</desc>
+  <style>
+    .bw-rest{display:none}
+    @media(prefers-reduced-motion:reduce){.bw-motion{display:none}.bw-rest{display:inline}}
+  </style>
+  <defs>
+    <path id="bw-outline" d="M54 33.3205A10 10 0 0 0 39 24.6603L15 38.5167A10 10 0 0 0 10 47.1769L10 168.9282A10 10 0 0 0 11.3397 173.9282L51.0081 242.6359A10 10 0 0 0 59.6684 247.6359L149.5248 247.6359A10 10 0 0 0 158.185 242.6359L171.9363 218.8179A10 10 0 0 1 189.2568 218.8179L203.0081 242.6359A10 10 0 0 0 211.6684 247.6359L275.5248 247.6359A10 10 0 0 0 284.185 242.6359L297.9363 218.8179A10 10 0 0 1 315.2568 218.8179L329.0081 242.6359A10 10 0 0 0 337.6684 247.6359L401.5248 247.6359A10 10 0 0 0 410.185 242.6359L449.8534 173.9282A10 10 0 0 0 451.1932 168.9282L451.1932 82A10 10 0 0 0 436.1932 73.3397L412.1932 87.1962A10 10 0 0 0 407.1932 95.8564L407.1932 157.1384A10 10 0 0 1 405.8534 162.1384L384.7816 198.6359A10 10 0 0 1 376.1214 203.6359L363.0718 203.6359A10 10 0 0 1 354.4115 198.6359L323.3397 144.8179A10 10 0 0 0 314.6795 139.8179L298.5137 139.8179A10 10 0 0 0 289.8534 144.8179L258.7816 198.6359A10 10 0 0 1 250.1214 203.6359L237.0718 203.6359A10 10 0 0 1 228.4115 198.6359L158.185 77A10 10 0 0 0 149.5248 72L89.2983 72A10 10 0 0 0 79.2983 82L79.2983 106A10 10 0 0 0 89.2983 116L124.1214 116A10 10 0 0 1 132.7816 121L152.3064 154.8179A10 10 0 0 1 152.3064 164.8179L132.7816 198.6359A10 10 0 0 1 124.1214 203.6359L85.0718 203.6359A10 10 0 0 1 76.4115 198.6359L55.3397 162.1384A10 10 0 0 1 54 157.1384Z"/>
+    <mask id="bw-growth" maskUnits="userSpaceOnUse" x="-10" y="0" width="490" height="275" style="mask-type:luminance">
+      <g fill="none" stroke="white" stroke-width="72" stroke-linecap="round" stroke-linejoin="round">
+        <animate attributeName="opacity" values="0;0;1;1" keyTimes="0;.02;.12;1" begin="0s" dur="2.4s" repeatCount="1" fill="remove"/>
+
+      <path id="bw-b-growth" d="M32 20L32 165.7128L66.5966 225.6359L142.5966 225.6359L180.5966 159.8179L142.5966 94L79.2983 94" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="0">
+
+        <animate attributeName="stroke-dashoffset" values="1;1;0;0" keyTimes="0;.025;.65;1" keySplines="0 0 1 1;.42 0 .35 1;0 0 1 1" calcMode="spline" begin="0s" dur="2.4s" repeatCount="1" fill="remove"/>
+      </path>
+
+      <path id="bw-w-growth" d="M180.5966 159.8179L218.5966 225.6359L268.5966 225.6359L306.5966 159.8179L344.5966 225.6359L394.5966 225.6359L429.1932 165.7128L429.1932 64.6795" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="0">
+        <set attributeName="visibility" to="hidden" begin="0s" dur="0.8618s" fill="remove"/>
+        <animate attributeName="stroke-dashoffset" values="1;1;0;0" keyTimes="0;0.3591;.97;1" keySplines="0 0 1 1;.42 0 .22 1;0 0 1 1" calcMode="spline" begin="0s" dur="2.4s" repeatCount="1" fill="remove"/>
+      </path>
+      </g>
+    </mask>
+  </defs>
+  <use class="bw-motion" href="#bw-outline" fill="#142219" mask="url(#bw-growth)">
+    <set attributeName="mask" to="none" begin="2.4s" fill="freeze"/>
+  </use>
+  <use class="bw-rest" href="#bw-outline" fill="#142219"/>
+</svg></div><div class="controls"><button id="replay" type="button" hidden>Replay reveal</button><a href="/brand/bw-reveal.svg">Animated SVG</a></div><p id="status">2.4 seconds · plays once</p></main>
+<script>
+  const mark=document.querySelector('.stage svg');
+  const button=document.querySelector('#replay');
+  const status=document.querySelector('#status');
+  const motion=matchMedia('(prefers-reduced-motion: reduce)');
+  const capable=typeof mark.setCurrentTime==='function';
+  button.hidden=!capable;
+  function preferences(){
+    button.disabled=motion.matches;
+    status.textContent=motion.matches?'Reduced motion · static logo':'2.4 seconds · plays once';
+    if(motion.matches&&capable)mark.setCurrentTime(2.4);
+  }
+  function visibility(){
+    if(!capable)return;
+    if(document.hidden)mark.pauseAnimations();else mark.unpauseAnimations();
+  }
+  button.addEventListener('click',()=>{if(!motion.matches){mark.setCurrentTime(0);mark.unpauseAnimations();}});
+  motion.addEventListener('change',preferences);
+  document.addEventListener('visibilitychange',visibility);
+  preferences();visibility();
+</script></body></html>

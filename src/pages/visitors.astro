@@ -17,7 +17,9 @@ Astro.response.headers.set("cache-control", "no-store");
 
 const secret = visitsSecret();
 // With no password configured there is nothing to unlock: behave like no page.
-if (!secret) return new Response("Not found", { status: 404 });
+if (!secret) return new Response("Not found", { status: 404, headers: {
+  "x-robots-tag": "noindex, nofollow", "cache-control": "no-store",
+} });
 
 const token = await sessionToken(secret);
 const cookie = Astro.cookies.get(SESSION_COOKIE)?.value;
@@ -82,18 +84,15 @@ const rows = visits.map((v) => [
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Metamorphous&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="preload" href="/fonts/TWKLausanne-400.woff2" as="font" type="font/woff2" crossorigin />
+    <meta name="theme-color" content="#ffffff" />
     <title>Visitors</title>
   </head>
   <body class="visitors">
     {!authorised ? (
       <main class="shell gate">
         <form method="post" action="/visitors" class="login" autocomplete="off">
+          <a class="back-link" href="/">← Ben Woodward</a>
           <h1>Visitors</h1>
           <label for="key">Password</label>
           <div class="row">
@@ -151,11 +150,9 @@ const rows = visits.map((v) => [
 </html>
 
 <style>
-  /* global.css puts Metamorphous on html; it carries headings but is too
-     decorative for dense data, so body text drops back to system sans. */
+  .back-link { font-size: 12px; color: var(--muted); min-height: 44px; display: flex; align-items: center; }
   .visitors {
-    font-family:
-      ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, sans-serif;
+    font-family: var(--font);
     color: var(--foreground);
   }
 
@@ -174,17 +171,16 @@ const rows = visits.map((v) => [
   }
 
   h1 {
-    font-family: "Metamorphous", serif;
+    font-family: var(--font);
     font-size: 2rem;
     font-weight: 400;
-    letter-spacing: 0.02em;
     margin: 0;
   }
 
   .notice {
     background: var(--surface);
     border: 1px solid var(--rule);
-    border-radius: 6px;
+    border-radius: 2px;
     padding: 1.25rem 1.5rem;
     color: var(--muted);
     font-size: 0.92rem;
@@ -204,7 +200,7 @@ const rows = visits.map((v) => [
     padding: 1.6rem 1.6rem 1.4rem;
     background: var(--surface);
     border: 1px solid var(--rule);
-    border-radius: 10px;
+    border-radius: 2px;
   }
 
   .login h1 {
@@ -229,12 +225,12 @@ const rows = visits.map((v) => [
     color: var(--foreground);
     background: var(--background);
     border: 1px solid var(--rule);
-    border-radius: 6px;
-    outline: none;
+    border-radius: 2px;
+    min-height: 44px;
   }
 
   .login input:focus {
-    border-color: var(--accent);
+    border-color: var(--accent-text);
   }
 
   .login input[aria-invalid="true"] {
@@ -242,12 +238,13 @@ const rows = visits.map((v) => [
   }
 
   .login button {
+    min-height: 44px;
     padding: 0.6rem 1rem;
     font: inherit;
-    color: var(--background);
+    color: #000;
     background: var(--accent);
     border: 0;
-    border-radius: 6px;
+    border-radius: 2px;
     cursor: pointer;
   }
 
@@ -258,7 +255,7 @@ const rows = visits.map((v) => [
   .login .error {
     margin: 0;
     font-size: 0.84rem;
-    color: #e0907f;
+    color: #000;
   }
 
   .login .hint {
@@ -272,7 +269,7 @@ const rows = visits.map((v) => [
 
   code {
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    color: var(--accent);
+    color: #000;
     font-size: 0.88em;
   }
 </style>

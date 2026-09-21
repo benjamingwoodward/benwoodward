@@ -16,9 +16,9 @@ const LIVE_MS = 30 * 60e3;
 const TOOLTIP_ROWS = 5;
 
 // Palette mirrors global.css; the canvas can't read CSS variables.
-const SURFACE = "#061f18";
-const LAND = "#3f8f76";
-const ACCENT = "#c4a45b";
+const SURFACE = "#e1e5da";
+const LAND = "#647762";
+const ACCENT = "#ff4f1f";
 
 // Rows arrive compact to keep the page small — see visitors.astro.
 function inflate([ts, lat, lng, place, client, path, referrer, ip, duration]) {
@@ -360,7 +360,7 @@ export default function VisitorsGlobe({ visits: rows }) {
               ringsData={live}
               ringLat="lat"
               ringLng="lng"
-              ringColor={() => (t) => `rgba(196, 164, 91, ${1 - t})`}
+              ringColor={() => (t) => `rgba(255, 79, 31, ${1 - t})`}
               ringMaxRadius={3}
               ringPropagationSpeed={1.2}
               ringRepeatPeriod={1200}

@@ -1,0 +1,13 @@
+<p class="age-eyebrow" data-age-counter title="Elapsed seconds since March 18, 2003 at 00:00 UTC; birth time was not supplied.">
+  <span data-age-fallback>Building since <time datetime="2003-03-18">March 18, 2003</time></span>
+  <span data-age-live hidden>
+    <span class="sr-only" data-age-accessible></span>
+    <span aria-hidden="true">Seconds building</span>
+    <span class="age-counter-value" data-age-value aria-hidden="true"></span>
+  </span>
+</p>
+<script>
+  import { mountAgeCounter } from "../lib/age-counter";
+  const counter = document.querySelector<HTMLElement>("[data-age-counter]");
+  if (counter) mountAgeCounter(counter);
+</script>

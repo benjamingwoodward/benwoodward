@@ -1,0 +1,186 @@
+---
+import reveal from "../../public/brand/bw-reveal.svg?raw";
+import { HelicopterArtwork } from "./machines/cash-helicopter";
+// Keep these SVG IDs separate from the standalone preview or any future header mark.
+const introMark = reveal.replaceAll("bw-", "intro-bw-").replaceAll("#142219", "#000000");
+---
+<dialog id="site-intro" class="intro-screen" aria-label="Introduction to Ben Woodward" tabindex="-1" autofocus>
+  <div class="intro-curtain">
+    <div id="intro-waves" class="intro-waves" aria-hidden="true"></div>
+    <div class="intro-center">
+      <div class="intro-logo" aria-hidden="true" set:html={introMark} />
+    </div>
+  </div>
+  <svg class="intro-rescue" aria-hidden="true" focusable="false" fill="none">
+    <g class="intro-flight" visibility="hidden">
+      <g class="intro-aircraft-scale"><g transform="translate(-257 -97)"><HelicopterArtwork sharedCargo endpointGeometry /></g></g>
+    </g>
+  </svg>
+</dialog>
+<script is:inline>
+  (() => {
+    const root = document.documentElement;
+    const dialog = document.getElementById("site-intro");
+    const logo = dialog?.querySelector("svg");
+    if (!dialog || !logo || !root.dataset.intro) return;
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
+    const animations = [];
+    const timers = [];
+    let finished = false;
+    const finish = (moveFocus = false) => {
+      if (finished) return;
+      finished = true;
+      timers.forEach(clearTimeout);
+      animations.forEach(animation => animation.cancel());
+      logo.pauseAnimations?.();
+      delete root.dataset.intro;
+      if (dialog.open) dialog.close();
+      motion.removeEventListener("change", preferenceChanged);
+      document.removeEventListener("visibilitychange", visibilityChanged);
+      window.removeEventListener("pagehide", leave);
+      window.removeEventListener("resize", leave);
+      if (moveFocus) document.getElementById("main-content")?.focus({ preventScroll: true });
+    };
+    const preferenceChanged = () => { if (motion.matches) finish(); };
+    const visibilityChanged = () => { if (document.hidden) finish(); };
+    const leave = () => finish();
+    dialog.addEventListener("cancel", event => { event.preventDefault(); finish(true); });
+    dialog.addEventListener("close", () => finish());
+    dialog.addEventListener("keydown", event => {
+      if (event.key === "Tab") { event.preventDefault(); dialog.focus({ preventScroll: true }); }
+    });
+    motion.addEventListener("change", preferenceChanged);
+    document.addEventListener("visibilitychange", visibilityChanged);
+    window.addEventListener("pagehide", leave);
+    // A viewport change should reveal the site rather than detach the hook.
+    window.addEventListener("resize", leave);
+    try {
+      if (motion.matches || typeof logo.setCurrentTime !== "function") { finish(); return; }
+      dialog.showModal();
+      root.dataset.intro = "playing";
+      logo.setCurrentTime(0);
+      logo.unpauseAnimations();
+      const curtain = dialog.querySelector(".intro-curtain");
+      const scene = dialog.querySelector(".intro-rescue");
+      const flight = scene.querySelector(".intro-flight");
+      const width = dialog.clientWidth;
+      const height = dialog.clientHeight;
+      const scale = Math.min(.95, Math.max(.64, width / 1400));
+      const x = width * .65;
+      const y = height - 155 * scale;
+      const cableLength = (height - y) / scale - 6;
+      const distance = height + 24;
+      scene.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      scene.querySelector(".intro-aircraft-scale").setAttribute("transform", `scale(${scale})`);
+      flight.setAttribute("transform", `translate(${-300 * scale} ${y - 45 * scale})`);
+      flight.removeAttribute("visibility");
+      const animate = (element, frames, options) => {
+        const animation = element.animate(frames, { fill: "both", ...options });
+        animations.push(animation);
+        return animation;
+      };
+      const part = name => scene.querySelector(`[data-lift-part="${name}"]`);
+      // Animate actual dimensions rather than scaling a one-unit stroke: extreme
+      // scale transforms can rasterize a faint extension past the winch pivot.
+      const cable = part("cable");
+      const rotor = part("rotor").querySelector("rect");
+      // This timeline overlaps the logo reveal. The winch settles before it
+      // lowers; the hook's tip ends exactly at the orange panel's lower edge.
+      animate(flight, [
+        { transform: `translate(${-300 * scale}px, ${y - 45 * scale}px)` },
+        { transform: `translate(${x}px, ${y}px)` },
+      ], { delay: 1250, duration: 1200, easing: "cubic-bezier(.25,.65,.3,1)" });
+      animate(part("airframe"), [
+        { transform: "translateY(8px) rotate(5deg) translateY(-8px)" },
+        { transform: "translateY(8px) rotate(-2deg) translateY(-8px)", offset: .8 },
+        { transform: "rotate(0deg)" },
+      ], { delay: 1250, duration: 1200, easing: "ease-in-out" });
+      animate(cable, [{ height: "18px" }, { height: `${cableLength}px` }],
+        { delay: 2450, duration: 850, easing: "cubic-bezier(.45,0,.55,1)" });
+      animate(part("hook"), [{ transform: "translateY(18px)" }, { transform: `translateY(${cableLength}px)` }],
+        { delay: 2450, duration: 850, easing: "cubic-bezier(.45,0,.55,1)" });
+      animate(rotor, [{ x: "-112px", width: "224px" }, { x: "-13.44px", width: "26.88px" }, { x: "-112px", width: "224px" }],
+        { duration: 160, iterations: Infinity });
+      animate(part("tail-rotor"), [{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }],
+        { duration: 220, iterations: Infinity });
+      timers.push(setTimeout(() => {
+        root.dataset.intro = "leaving";
+        const smooth = t => t * t * (3 - 2 * t);
+        const interpolate = (t, poses) => {
+          const i = poses.findIndex((pose, index) => index > 0 && t <= pose[0]);
+          if (i < 0) return poses[poses.length - 1][1];
+          const [a, b] = [poses[i - 1], poses[i]];
+          return a[1] + (b[1] - a[1]) * smooth((t - a[0]) / (b[0] - a[0]));
+        };
+        const frames = Array.from({ length: 85 }, (_, index) => {
+          const t = index / 84;
+          // A little lift and settle gives the curtain weight before takeoff.
+          const panelY = interpolate(t, [[0, 0], [.16, -22 * scale], [.26, -10 * scale], [1, -distance]]);
+          const drift = Math.min(width * .12, 150) * smooth(t);
+          const stretch = interpolate(t, [[0, 0], [.16, 22 * scale], [.26, 8 * scale], [.65, 45 * scale], [1, 45 * scale]]);
+          const vertical = height - y + stretch;
+          const length = Math.hypot(drift, vertical) / scale - 6;
+          const angle = Math.atan2(drift, vertical) * 180 / Math.PI;
+          // Suggest effort without rigidly matching the cable: most of the
+          // lift stays vertical, with a restrained bank and a soft tug/settle.
+          const bank = angle * .55 + interpolate(t, [[0, 0], [.16, 5], [.26, -2], [.45, 0], [1, 0]]);
+          return { offset: t, panelY, drift, stretch, length, angle, bank };
+        });
+        const liftOptions = { duration: 2800, easing: "linear" };
+        const track = (element, value) => animate(element,
+          frames.map(frame => ({ offset: frame.offset, transform: value(frame) })), liftOptions);
+        const panelLift = track(curtain, f => `translateY(${f.panelY}px)`);
+        const lifts = [panelLift,
+          track(flight, f => `translate(${x + f.drift}px, ${y + f.panelY - f.stretch}px)`),
+          track(part("airframe"), f => `translateY(8px) rotate(${f.bank}deg) translateY(-8px)`),
+          track(part("rig"), f => `rotate(${f.angle}deg)`),
+          animate(cable, frames.map(f => ({ offset: f.offset, height: `${f.length}px` })), liftOptions),
+          track(part("hook"), f => `translateY(${f.length}px)`),
+        ];
+        // Solve the diagonal cable back to a fixed point on the straight edge.
+        // Every track uses one clock, including the tug, bank, and winch payout.
+        const clock = document.timeline.currentTime;
+        lifts.forEach(animation => { animation.startTime = clock; });
+        panelLift.onfinish = () => finish();
+      }, 3550));
+      timers.push(setTimeout(() => finish(), 7200));
+    } catch { finish(); }
+  })();
+</script>
+<script>
+  // Load the optional GPU texture only for an active intro. The reveal never
+  // waits for it; unsupported GPUs simply retain the solid orange backdrop.
+  const dialog = document.querySelector<HTMLDialogElement>("#site-intro");
+  const host = document.querySelector<HTMLElement>("#intro-waves");
+  if (dialog?.open && host && "gpu" in navigator && navigator.gpu && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    let dispose: (() => void) | undefined;
+    const stop = () => { dispose?.(); dispose = undefined; };
+    dialog.addEventListener("close", stop, { once: true });
+    window.addEventListener("pagehide", stop, { once: true });
+    import("./effects/intro-waves").then(({ mountIntroWaves }) => {
+      if (dialog.open && document.documentElement.dataset.intro === "playing") {
+        dispose = mountIntroWaves(host);
+      }
+    }).catch(() => { /* Decorative enhancement: never block the homepage. */ });
+  }
+</script>
+<style is:global>
+  .intro-screen {
+    position: fixed; inset: 0; margin: 0; width: 100%; height: 100dvh;
+    max-width: none; max-height: none; border: 0; padding: 0;
+    background: transparent; color: #000; overflow: hidden; overscroll-behavior: contain;
+  }
+  .intro-screen[open] { display: grid; place-items: center; }
+  .intro-screen::backdrop { background: transparent; }
+  .intro-curtain { position: absolute; inset: 0; padding: 28px; display: grid; place-items: center; background: #ff4f1f; will-change: transform; }
+  .intro-rescue { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .intro-rescue [data-helicopter-center-pole] { fill: #fff; }
+  .intro-rescue [data-lift-part] { transform-box: view-box; transform-origin: 0 0; }
+  .intro-waves { position: absolute; inset: 0; pointer-events: none; opacity: .18; mask-image: radial-gradient(ellipse at center, transparent 8%, #000 65%); }
+  .intro-center { position: relative; display: grid; place-items: center; width: 100%; }
+  .intro-logo { width: clamp(168px, 24vw, 264px); }
+  .intro-logo svg { display: block; width: 100%; height: auto; }
+  .intro-screen:focus { outline: none; }
+  @media(max-height: 460px) { .intro-logo { width: 128px; } }
+  @media(prefers-reduced-motion: reduce) { .intro-screen { display: none !important; } }
+</style>

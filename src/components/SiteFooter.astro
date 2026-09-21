@@ -1,0 +1,12 @@
+---
+import { contactUrl, socials } from "../data/profile";
+import SocialIcon from "./SocialIcon.astro";
+import FooterMark from "./FooterMark.astro";
+---
+<footer class="site-footer" id="contact">
+  <div class="container">
+    <div class="contact-grid"><h2>Get in touch.</h2><a class="button primary" href={contactUrl} target="_blank" rel="noopener noreferrer">Message me <span aria-hidden="true">↗</span></a></div>
+    <div class="footer-bar"><p>© {new Date().getFullYear()} Ben Woodward</p><nav class="footer-socials" aria-label="Social links">{socials.map(social => <a class="social-icon-link" href={social.href} aria-label={social.label} title={social.label} target="_blank" rel="noopener noreferrer"><SocialIcon name={social.label} /></a>)}</nav></div>
+  </div>
+  <div class="footer-brand container"><FooterMark /></div>
+</footer>

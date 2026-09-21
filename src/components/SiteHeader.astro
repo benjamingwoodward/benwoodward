@@ -1,0 +1,13 @@
+---
+import { socials } from "../data/profile";
+import SocialIcon from "./SocialIcon.astro";
+---
+<a class="skip-link" href="#main-content">Skip to content</a>
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="wordmark" href="/" aria-label="Ben Woodward home"><img class="brand-mark" src="/brand/bw-clean.svg" width="52" height="28" alt="" /></a>
+    <nav class="header-socials" aria-label="Social profiles">
+      {socials.map(social => <a class="social-icon-link" href={social.href} aria-label={social.label} title={social.label} target="_blank" rel="noopener noreferrer"><SocialIcon name={social.label} /></a>)}
+    </nav>
+  </div>
+</header>

@@ -1,0 +1,26 @@
+.review { padding-block: 50px; max-width: 1160px; }
+.review header { margin-bottom: 48px; }
+.review h1 { font-size: clamp(40px, 5vw, 64px); line-height: 1.1; margin-bottom: 16px; }
+.review header p { margin-bottom: 22px; }
+.review h2 { font-size: 25px; margin-bottom: 28px; }
+.review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; }
+.review .work-card { display: block; padding-top: 24px; padding-bottom: 32px; }
+.review .work-card h3 { font-size: 18px; margin-bottom: 8px; }
+.review .work-metric { font-size: 36px; margin-bottom: 12px; }
+.review .work-machine { height: auto; margin: 0; }
+.achievement-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.achievement-svg [data-art] { transform-box: view-box; transform-origin: 0 0; }
+.review-poster { width: 100%; aspect-ratio: 16/9; object-fit: cover; border: 1px solid var(--rule); }
+.review-caption { font-size: 14px; margin-top: 10px; }
+.arm-review-stage { aspect-ratio: 280 / 180; display: grid; align-items: end; }
+.arm-review-stage .work-machine { height: 360px; align-items: end; }
+.arm-review-stage .bento-machine,.refined-arm { width: 100%; height: auto; }
+.refined-arm [data-refined] { transform-box: view-box; transform-origin: 0 0; }
+.refined-arm { overflow: visible; }
+.machine-review-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 32px; }
+.machine-review-grid .work-card { grid-column: auto; }
+.machine-review-grid .work-machine { height: 240px; }
+.machine-review-grid h2 { font-size: 20px; }
+@media(max-width:900px) { .machine-review-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) { .machine-review-grid { grid-template-columns: 1fr; } }
+@media(max-width:650px) { .review-grid { grid-template-columns: 1fr; gap: 40px; } }

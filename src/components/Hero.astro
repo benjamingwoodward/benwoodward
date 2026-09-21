@@ -1,0 +1,55 @@
+---
+import VehicleScene from "./machines/VehicleScene";
+import HeadlineCrane from "./machines/HeadlineCrane";
+import RockTransition from "./RockTransition.astro";
+import HeroWaves from "./HeroWaves.astro";
+import AgeCounter from "./AgeCounter.astro";
+---
+<section class="hero-section" aria-labelledby="hero-title">
+  <HeroWaves />
+  <div class="hero-copy container">
+    <AgeCounter />
+    <h1 id="hero-title"><span class="headline-build"><span class="headline-build-baseline"><HeadlineCrane client:load /></span>B<span data-crane-letter="from">e</span><span data-crane-letter="to">n</span></span> Woodward</h1>
+    <p class="hero-summary">Founder. Now GM of Coverage at Redo, leading a business line worth $750M.</p>
+  </div>
+  <div class="hero-ground">
+    <div class="hero-illustration">
+      <div class="vehicle-stage"><VehicleScene client:load /></div>
+    </div>
+  </div>
+</section>
+<RockTransition />
+<script>
+  // Keep the initial fold stable when mobile browser chrome opens/closes on scroll.
+  const hero = document.querySelector<HTMLElement>(".hero-section");
+  const header = document.querySelector<HTMLElement>(".site-header");
+  let viewportWidth = window.innerWidth;
+  const sizeHero = () => {
+    const headerHeight = header?.getBoundingClientRect().height ?? 0;
+    hero?.style.setProperty("--hero-viewport", `${window.innerHeight}px`);
+    hero?.style.setProperty("--header-height", `${headerHeight}px`);
+    document.documentElement.style.setProperty("--site-header-height", `${headerHeight}px`);
+  };
+  sizeHero();
+  if (header && typeof ResizeObserver !== "undefined") {
+    new ResizeObserver(sizeHero).observe(header);
+  }
+  window.addEventListener("resize", () => {
+    if (window.innerWidth !== viewportWidth || window.matchMedia("(hover: hover)").matches) sizeHero();
+    viewportWidth = window.innerWidth;
+  });
+  // Browser focus scrolling does not account for sticky overlays. Keep tabbed
+  // controls below both the header and the cliff, without moving the pointer.
+  document.querySelector("main")?.addEventListener("focusin", event => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement) || target.closest("dialog")) return;
+    requestAnimationFrame(() => {
+      if (!target.matches(":focus-visible")) return;
+      const headerBottom = header?.getBoundingClientRect().bottom ?? 0;
+      const cliff = document.querySelector(".rock-transition")?.getBoundingClientRect();
+      const clearance = (cliff && cliff.top <= headerBottom + 1 ? cliff.bottom : headerBottom) + 12;
+      const bounds = target.getBoundingClientRect();
+      if (bounds.top < clearance) window.scrollBy({ top: bounds.top - clearance, behavior: "instant" });
+    });
+  });
+</script>

@@ -1,0 +1,30 @@
+---
+import reveal from "../../public/brand/bw-reveal.svg?raw";
+// Approved geometry, unique IDs, and a visibility-controlled clock instead of SMIL.
+const mark = reveal.replaceAll("bw-", "footer-bw-")
+  .replaceAll("#142219", "currentColor")
+  .replace(/<(?:animate|set)\b[^>]*\/>/g, "");
+---
+<div class="footer-mark" id="footer-mark" aria-hidden="true" set:html={mark} />
+<script>
+  import { startFiniteMotion } from "./machines/motion";
+  const mark = document.querySelector<SVGSVGElement>("#footer-mark svg");
+  if (mark) startFiniteMotion(mark, animate => {
+    const b = mark.querySelector("#footer-bw-b-growth");
+    const w = mark.querySelector("#footer-bw-w-growth");
+    const mask = mark.querySelector("#footer-bw-growth > g");
+    if (!b || !w || !mask) return;
+    animate(mask, [{ opacity: 0 }, { opacity: 0, offset: .02 }, { opacity: 1, offset: .12 }, { opacity: 1 }], 2400);
+    animate(b, [
+      { strokeDashoffset: "1" },
+      { strokeDashoffset: "1", offset: .025, easing: "cubic-bezier(.42,0,.35,1)" },
+      { strokeDashoffset: "0", offset: .65 }, { strokeDashoffset: "0" },
+    ], 2400);
+    animate(w, [
+      { strokeDashoffset: "1", visibility: "hidden", easing: "steps(1,end)" },
+      { strokeDashoffset: "1", visibility: "visible", offset: .3591, easing: "cubic-bezier(.42,0,.22,1)" },
+      { strokeDashoffset: "0", visibility: "visible", offset: .97 },
+      { strokeDashoffset: "0", visibility: "visible" },
+    ], 2400);
+  });
+</script>
