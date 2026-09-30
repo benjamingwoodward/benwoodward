@@ -4,7 +4,7 @@ import Photo from "./Photo.astro";
 import PureflowPreview from "./PureflowPreview.astro";
 ---
 <section class="story-section section-pad container" id="story" aria-labelledby="story-title">
-  <div class="section-heading"><h2 id="story-title">The story so far.</h2></div>
+  <div class="section-heading"><h2 id="story-title">How I got here.</h2></div>
   <ol class="story-timeline">
     {chapters.map(chapter => <li class={`story-card story-${chapter.id}`}>
       <span class="story-age"><span class="sr-only">{chapter.age === "Now" ? "" : "Age "}</span>{chapter.age}</span>

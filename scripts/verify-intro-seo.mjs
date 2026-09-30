@@ -157,8 +157,8 @@ try {
   const description = await page.locator('meta[name="description"]').getAttribute('content');
   assert.ok(description.length >= 100 && description.length <= 170);
   assert.match(description, /worth \$750M/);
-  assert.match(description, /founder who built and sold Pureflow\. Now GM of Coverage at Redo/);
-  assert.match(await page.locator('.hero-summary').textContent(), /^Founder\. Now GM of Coverage at Redo/);
+  assert.match(description, /Ben Woodward built and sold Pureflow and is now GM of Coverage at Redo/);
+  assert.match(await page.locator('.hero-summary').textContent(), /^I built and sold Pureflow\. Today I’m GM of Coverage at Redo/);
   assert.doesNotMatch(description, /founder (and|&) GM of Coverage/i);
   const graph = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent())['@graph'];
   const person = graph.find(item => item['@type'] === 'Person');
@@ -183,7 +183,7 @@ try {
     .map(el => ({ tag: el.tagName, text: el.textContent.slice(0, 50), color: getComputedStyle(el).color })));
   assert.deepEqual(nonBlack, [], 'Text is black on white/orange surfaces and white in the dark footer');
   const raw = await (await page.request.get(base)).text();
-  assert.ok(raw.includes('business line worth $750M') && raw.includes('merchant onboarding'));
+  assert.ok(raw.includes('business line worth $750M') && /merchant onboarding/i.test(raw));
   const sitemap = await (await page.request.get(`${base}/sitemap.xml`)).text();
   assert.ok(sitemap.includes('https://benwoodward.bio/') && !/visitors|brand\//.test(sitemap));
   assert.match(await (await page.request.get(`${base}/robots.txt`)).text(), /Sitemap: https:\/\/benwoodward.bio\/sitemap.xml/);

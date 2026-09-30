@@ -80,7 +80,7 @@ try {
     assert.equal(requests.some(url => /fonts.googleapis|fonts.gstatic|cobra|snake|VisitorsGlobe|react-globe|three\.js/i.test(url)), false);
     assert.equal(await page.locator(".vehicle-scene").count(), 1);
     assert.equal((await page.locator("h1").innerText()).trim(), 'Ben Woodward');
-    assert.equal(await page.locator(".hero-work-link").count(), 0, "Hero should not repeat the Track record label");
+    assert.equal(await page.locator(".hero-work-link").count(), 0, "Hero should not repeat the work section label");
     assert.match(await page.locator(".hero-summary").textContent(), /business line worth \$750M/);
     assert.match(await page.locator('meta[name="description"]').getAttribute("content"), /GM of Coverage/);
   });

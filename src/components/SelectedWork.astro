@@ -4,7 +4,7 @@ import WorkMachine from "./machines/WorkMachine";
 ---
 <section class="work-section section-pad" id="work" aria-labelledby="work-title">
   <div class="container">
-    <div class="section-heading"><h2 id="work-title">Track record.</h2></div>
+    <div class="section-heading"><h2 id="work-title">Selected work.</h2></div>
     <div class="work-grid">
       {work.map((item, index) => <article class:list={["work-card", { "work-card-large": index < 2 }]} aria-labelledby={`work-${item.id}`}>
         <div class="work-copy"><h3 id={`work-${item.id}`}>{item.title}</h3><p class="work-metric">{item.metric}</p><p class="work-description">{item.description}</p>

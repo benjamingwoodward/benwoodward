@@ -14,10 +14,10 @@ const siteUrl = Astro.site?.href ?? "https://benwoodward.bio/";
 const canonicalUrl = new URL("/", siteUrl).toString();
 const seoTitle = "Ben Woodward | Founder & Operator";
 const seoDescription =
-  "Ben Woodward is a founder who built and sold Pureflow. Now GM of Coverage at Redo, leading a business line worth $750M. Explore his work and story.";
+  "Ben Woodward built and sold Pureflow and is now GM of Coverage at Redo, a business line worth $750M. His work spans fintech, AI outbound and merchant automation.";
 const seoImageUrl = new URL("/og-image.png", siteUrl).toString();
 const socialProfileUrls = socials.map(social => social.href);
-const socialImageAlt = "Ben Woodward — Founder. Now GM of Coverage at Redo. A business line worth $750M.";
+const socialImageAlt = "Ben Woodward — built and sold Pureflow. Now GM of Coverage at Redo, a business line worth $750M.";
 const knowledgeAreas = [
   "AI infrastructure",
   "Fintech products",
@@ -74,8 +74,8 @@ const structuredData = {
       },
       mainEntity: { "@id": `${canonicalUrl}#person` },
       hasPart: [
-        { "@type": "WebPageElement", "@id": `${canonicalUrl}#work`, name: "Track record", url: `${canonicalUrl}#work` },
-        { "@type": "WebPageElement", "@id": `${canonicalUrl}#story`, name: "The story so far", url: `${canonicalUrl}#story` },
+        { "@type": "WebPageElement", "@id": `${canonicalUrl}#work`, name: "Selected work", url: `${canonicalUrl}#work` },
+        { "@type": "WebPageElement", "@id": `${canonicalUrl}#story`, name: "How I got here", url: `${canonicalUrl}#story` },
       ],
       primaryImageOfPage: {
         "@type": "ImageObject",

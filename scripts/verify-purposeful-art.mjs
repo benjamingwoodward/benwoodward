@@ -20,12 +20,12 @@ try {
   assert.equal(await page.locator(".achievement-svg").count(),5,"All five work cards use purpose-built machinery");
   await page.evaluate(() => document.documentElement.style.scrollBehavior = "auto");
   await check("Achievement order, static qualifications, nine overlapping age chapters", async () => {
-    assert.deepEqual(await page.locator(".work-copy h3").allTextContents(), ["Fintech & fraud", "Water-quality software", "Merchant onboarding", "AI outbound", "Hackathons"]);
+    assert.deepEqual(await page.locator(".work-copy h3").allTextContents(), ["Fintech & fraud systems", "Water-quality analytics", "Onboarding automation", "AI outbound systems", "Rapid prototyping"]);
     assert.equal(await page.locator("#work-outbound + .work-metric").textContent(), "$1.04M annual run-rate");
-    assert.deepEqual(await page.locator(".story-age").allTextContents(), ["Age 0–18", "Age 8–15", "Age 15", "Age 20", "Age 20–22", "Age 22", "Age 22", "Age 22", "Now"]);
-    assert.match(await page.locator(".story-endurance").textContent(), /3.5-hour/);
-    assert.match(await page.locator(".story-competition").textContent(), /first-place AI hackathon finish at 20/);
-    assert.match(await page.locator(".story-now").textContent(), /A business line worth \$750M/);
+    assert.deepEqual(await page.locator(".story-age").allTextContents(), ["Age 0–18", "Age 8–15", "Age 15", "Age 15–22", "Age 20–22", "Age 22", "Age 22", "Age 22", "Now"]);
+    assert.match(await page.locator(".story-endurance").textContent(), /Helsinki Marathon in 3\.5 hours/);
+    assert.match(await page.locator(".story-competition").textContent(), /Won at 15, 19, and 22/);
+    assert.match(await page.locator(".story-now").textContent(), /business line worth \$750M at Redo/);
     assert.equal(await page.locator(".story-graphic").count(), 0);
     assert.equal(await page.locator(".story-software .pureflow-preview").count(), 1);
     assert.equal(await page.locator(".work-card:has(#work-pureflow) .work-machine").count(), 1);
