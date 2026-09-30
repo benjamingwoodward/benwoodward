@@ -113,7 +113,7 @@ try {
     assert.equal(await page.locator(".skip-link").evaluate(el => el === document.activeElement), true);
     assert.equal(await page.locator(".desktop-nav,.mobile-menu").count(), 0);
     assert.deepEqual(await page.locator(".header-socials a").evaluateAll(links => links.map(link => [link.getAttribute("aria-label"), link.getAttribute("href")])), [
-      ["LinkedIn", "https://www.linkedin.com/in/woodward-ben/"], ["GitHub", "https://github.com/benjaminwoodward"], ["X", "https://x.com/benjaminbuilt"], ["Instagram", "https://www.instagram.com/benjawo/"],
+      ["LinkedIn", "https://www.linkedin.com/in/woodward-ben/"], ["GitHub", "https://github.com/benjaminwoodward"], ["X", "https://x.com/benjaminbuilt"],
     ]);
     await page.keyboard.press("Tab");
     assert.equal(await page.locator(".wordmark").evaluate(el => el === document.activeElement), true);

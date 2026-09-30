@@ -16,7 +16,7 @@ export const currentRole = {
 type Work = { id: string; title: string; metric: string; description: string; illustration: IllustrationId; href?: string; action?: string };
 export const work: Work[] = [
   { id: "fintech", title: "Fintech & fraud systems", metric: "$500M+", description: "Scaled financial and fraud infrastructure at Redo across merchants representing more than $500M in GMV.", illustration: "financial-systems", href: "https://redo.com", action: "About Redo" },
-  { id: "pureflow", title: "Water-quality analytics", metric: "Six-figure exit", description: "Built and sold Pureflow, a data product that translated water-quality inputs into personalized health reports.", illustration: "water-measurement" },
+  { id: "pureflow", title: "Water-quality analytics", metric: "Six-figure exit", description: "Founded Pureflow, a water-quality analytics product for personalized health reports; later exited the business.", illustration: "water-measurement" },
   { id: "onboarding", title: "Onboarding automation", metric: "~20 minutes", description: "Re-architected merchant onboarding as an automated pipeline: 1+ week to ~20 minutes, 60% of the workflow automated, and eight figures onboarded autonomously.", illustration: "merchant-connection" },
   { id: "outbound", title: "AI outbound systems", metric: "$1.04M annual run-rate", description: "Built an autonomous AI outbound engine that reached this annual run-rate in under two weeks.", illustration: "outbound-system" },
   { id: "building", title: "Rapid prototyping", metric: "3× winner", description: "Engineered and demoed prototypes under tight constraints, with hackathon wins at 15, 19, and 22.", illustration: "prototype-building" },
@@ -49,7 +49,7 @@ export const chapters: Chapter[] = [
   { id: "endurance", age: "22", label: "ENDURANCE", title: "Helsinki Marathon in 3.5 hours.", text: "Ran it at 22 without training.", photos: [
     { file: "marathon.jpg", caption: "After finishing the Helsinki Marathon." },
   ] },
-  { id: "software", age: "22", label: "SOFTWARE", title: "Built and sold Pureflow.", text: "Built a water-quality analytics product and sold it in a six-figure exit. Separately, scaled no-touch AI outbound to a $1.04M annual run-rate in under two weeks.", photos: [] },
+  { id: "software", age: "22", label: "SOFTWARE", title: "Exited Pureflow.", text: "A six-figure exit in water-quality analytics. Separately, scaled no-touch AI outbound to a $1.04M annual run-rate in under two weeks.", photos: [] },
   { id: "redo", age: "22", label: "OPERATOR", title: "Joined Redo as an operator.", text: "Left BYU to become GM of AI infrastructure at Redo.", photos: [] },
   { id: "now", age: "Now", label: "NOW", title: "GM of Coverage", text: "Leading a business line worth $750M at Redo.", photos: [] },
 ];

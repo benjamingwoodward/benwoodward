@@ -4,11 +4,13 @@
 
 Pureflow/name revision: replaced the “Watch Pureflow” link and video dialog with a frameless, transparent inline entrance. Sources remain inert until meaningful visibility; native playback pauses offscreen/in background tabs, plays only once, and holds its final frame. A regenerated white-background poster handles reduced motion, no JavaScript, blocked autoplay and failed media. HEVC-alpha and WebM remain available; no exit clip is requested. Added `test:pureflow` for playback, transparent-pixel checks, five widths and these fallbacks. Evidence: `/tmp/bio-pureflow-chromium` and `/tmp/bio-pureflow-webkit`.
 
-All displayed/indexable/accessibility branding and generated brand titles now use Ben Woodward. Existing social URLs/handles remain intact. The current hero copy names the Pureflow sale and the GM of Coverage role separately. Search descriptions, structured data, manifest, and the regenerated social card use the same distinction. The $750M figure describes the business line's worth, not revenue or a founder claim.
+All displayed/indexable/accessibility branding and generated brand titles now use Ben Woodward. Existing social URLs/handles remain intact. The current hero says “Exited founder” and separately names the GM of Coverage role. Search descriptions, structured data, manifest, and the regenerated social card use the same distinction. The $750M figure describes the business line's worth, not revenue or a founder claim.
 
 Latest editorial revision: work descriptions now foreground the problem, action, and result; Pureflow copy describes personalized water-quality reports visible in the supplied product preview. The age timeline reads as a progression from hardware and ecommerce through the exit and operating roles. No financial units were added. Section headings were simplified to “Selected work” and “How I got here.”
 
 Owner correction: the three hackathon wins occurred at 15, 19, and 22. The current work card, timeline age marker, photo captions, and content check use those ages without assigning an AI category or a first-place finish to a particular year.
+
+Header follow-up: Instagram was removed from the header's social icons. Its existing destination remains in the footer and profile metadata.
 
 Verification for this revision: `test:pureflow` passes in Chromium and WebKit, including native alpha transparency and four poster fallbacks. The 16-group browser regression, artwork/timeline suite and intro/SEO suite pass in Chromium. Reviewed desktop/mobile inline media and the regenerated social card. Astro check/build pass with the same two pre-existing hints and private-globe chunk warning as baseline; `git diff --check` is clean. The browser regression now waits for gallery focus-return clearance before its next synthetic scroll. No deployment or Operator-directory edits were made.
 

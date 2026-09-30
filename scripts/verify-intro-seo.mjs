@@ -152,13 +152,13 @@ try {
   console.log('PASS reduced motion, no JS, anchors, live preference changes, blocked storage, missing API, failed-script watchdog');
 
   assert.equal(await page.locator('h1').count(), 1);
-  assert.equal(await page.title(), 'Ben Woodward | Founder & Operator');
+  assert.equal(await page.title(), 'Ben Woodward | Exited Founder & Operator');
   assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), 'https://benwoodward.bio/');
   const description = await page.locator('meta[name="description"]').getAttribute('content');
   assert.ok(description.length >= 100 && description.length <= 170);
   assert.match(description, /worth \$750M/);
-  assert.match(description, /Ben Woodward built and sold Pureflow and is now GM of Coverage at Redo/);
-  assert.match(await page.locator('.hero-summary').textContent(), /^I built and sold Pureflow\. Today I’m GM of Coverage at Redo/);
+  assert.match(description, /Ben Woodward is an exited founder\. He is now GM of Coverage at Redo/);
+  assert.match(await page.locator('.hero-summary').textContent(), /^Exited founder\. Now GM of Coverage at Redo/);
   assert.doesNotMatch(description, /founder (and|&) GM of Coverage/i);
   const graph = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent())['@graph'];
   const person = graph.find(item => item['@type'] === 'Person');

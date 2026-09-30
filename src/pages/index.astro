@@ -12,12 +12,12 @@ import { currentRole, socials } from "../data/profile";
 
 const siteUrl = Astro.site?.href ?? "https://benwoodward.bio/";
 const canonicalUrl = new URL("/", siteUrl).toString();
-const seoTitle = "Ben Woodward | Founder & Operator";
+const seoTitle = "Ben Woodward | Exited Founder & Operator";
 const seoDescription =
-  "Ben Woodward built and sold Pureflow and is now GM of Coverage at Redo, a business line worth $750M. His work spans fintech, AI outbound and merchant automation.";
+  "Ben Woodward is an exited founder. He is now GM of Coverage at Redo, a business line worth $750M. His work spans fintech, AI outbound and automation.";
 const seoImageUrl = new URL("/og-image.png", siteUrl).toString();
 const socialProfileUrls = socials.map(social => social.href);
-const socialImageAlt = "Ben Woodward — built and sold Pureflow. Now GM of Coverage at Redo, a business line worth $750M.";
+const socialImageAlt = "Ben Woodward — exited founder. Now GM of Coverage at Redo, leading a business line worth $750M.";
 const knowledgeAreas = [
   "AI infrastructure",
   "Fintech products",

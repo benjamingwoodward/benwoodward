@@ -7,7 +7,7 @@ import SocialIcon from "./SocialIcon.astro";
   <div class="container header-inner">
     <a class="wordmark" href="/" aria-label="Ben Woodward home"><img class="brand-mark" src="/brand/bw-clean.svg" width="52" height="28" alt="" /></a>
     <nav class="header-socials" aria-label="Social profiles">
-      {socials.map(social => <a class="social-icon-link" href={social.href} aria-label={social.label} title={social.label} target="_blank" rel="noopener noreferrer"><SocialIcon name={social.label} /></a>)}
+      {socials.filter(social => social.label !== "Instagram").map(social => <a class="social-icon-link" href={social.href} aria-label={social.label} title={social.label} target="_blank" rel="noopener noreferrer"><SocialIcon name={social.label} /></a>)}
     </nav>
   </div>
 </header>
